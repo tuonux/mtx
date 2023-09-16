@@ -95,6 +95,8 @@ Just copy and paste the **mtx.src** code in **CodeEditor.exe** and build it with
     Privileges obtained from user: Elvin
     [+] Successfully created new exploit: exploit/shell/ssh/100_0x761FC8FE_cii_fr
 
+    ...snip...
+
 ### Reload the list of the available modules and exploits...
 
     mtx > reload
