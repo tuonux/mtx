@@ -216,7 +216,7 @@ get_exploit_example = function()
 	out.push("MTXExploit                    	       = get_custom_object.MTXExploit")
 	out.push("MTXExploit.name               	       = ""[name]""")
 	out.push("MTXExploit.description        	       = ""[description]""")
-	out.push("MTXExploit.author             	       = ""MTX DScanner""")
+	out.push("MTXExploit.author             	       = ""[author]""")
 	out.push("MTXExploit.rank               	       = ""[rank]""")
 	out.push("MTXExploit.privileged         	       = ""[privileged]""")
 	out.push("MTXExploit.disclosure_date    	       = ""[disclosure_date]""")
@@ -858,7 +858,7 @@ globals.mtx.reload = function(params = [], first_loading = false)
 		current_content = current_content.replace("""", "")
 		exploit = {}
 		exploit.file = current_file
-		exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace(".src")
+		exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace(".src", "")
 		exploit.type = exploit.id.split("exploit/")[1].split("/")[0]
 
 		for index in ["name", "rank", "disclosure_date"]
@@ -963,7 +963,7 @@ globals.mtx.use = function(params)
 	end if
 
 	globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
-	globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src"))
+	globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
 
 	for i in get_custom_object.MTXExploit.options.indexes
 		get_custom_object.MTXExploit.options[i].selection = get_custom_object.MTXExploit.options[i].default
@@ -1236,7 +1236,7 @@ globals.mtx.scan = function(params)
 			exploit.requirements = vulnerability.requirements
 			exploit.raw_info = vulnerability.raw
 			exploit.name = "exploits/" + compose_exploit_name(exploit)
-			exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace(".src")
+			exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace(".src", "")
 			exploit.overflow = overlow
 			print_good("Successfully created new exploit: " + exploit.id)
 			write_exploit(exploit)
@@ -1504,6 +1504,17 @@ globals.mtx.cd = function(params)
 	globals.localsession.pwd = new_dir.path
 	print_good("Local path -> " + new_dir.path)
 	return globals.localsession.pwd
+end function
+
+globals.mtx["new"] = function(params)
+	if params.len < 1 then return print("Usage: new <explpoit|backdoor>")
+	if params[0] == "exploit" then 
+		exploit_example_path = globals.localsession.pwd + "/" + "exploit_" + current_date.split(" ")[0].replace("/", "_") + ".src"
+		write_file(globals.localsession, exploit_example_path, get_exploit_example)
+		print_info("New exploit example created -> " + exploit_example_path)
+		globals.metexpreter.cat([exploit_example_path])
+		return
+	end if
 end function
 
 globals.mtx.help = function(params)
