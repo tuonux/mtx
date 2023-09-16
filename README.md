@@ -4,7 +4,7 @@ Just a funny porting of the real Metasploit Framework written in GreyScript lang
 
 Author: tuonux \<tuonux0@gmail.com\>
 
-<iframe width="100%" height="300" src="https://www.youtube.com/embed/QtLqkCrDPZY?si=0TChQOkc5m7oqXTK" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/QtLqkCrDPZY/0.jpg)](http://www.youtube.com/watch?v=QtLqkCrDPZY "GREY HACK - MTX FRAMEWORK - HACK UNREACHABLES TARGETS")
 
 ### Changelog
 
