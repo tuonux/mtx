@@ -618,7 +618,13 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
 
 	ln
 
-	new_session = {"name": "", "description": description, "tunnel": tunnel, "information": typeof(result) + "/" + user_info.name, "shell": result, "computer": computer, "user": user_info.name, "homedir": user_info.path, "pwd": user_info.path, "public_ip": public_ip, "local_ip": local_ip, "type": typeof(result)}
+	pwd = user_info.path
+
+	if globals.sessions.len == 0 then 
+		pwd = program_path.split("/")[0:-1].join("/")
+	end if
+
+	new_session = {"name": "", "description": description, "tunnel": tunnel, "information": typeof(result) + "/" + user_info.name, "shell": result, "computer": computer, "user": user_info.name, "homedir": user_info.path, "pwd": pwd, "public_ip": public_ip, "local_ip": local_ip, "type": typeof(result)}
 
 	if globals.sessions.indexOf(new_session) != null then
 		return print_error("Session already opened")
@@ -1707,7 +1713,14 @@ globals.metexpreter.download = function(params)
 	end if
 
 	globals.session.shell.scp(file_to_download.path, globals.localsession.pwd, globals.localsession.shell)
+	
+	downloaded_file = get_file(globals.localsession.shell,  globals.localsession.pwd + "/" + file_to_download.name)
 	ln
+	if typeof(downloaded_file) == "file" then 
+		downloaded_file.set_owner(globals.localsession.user)
+		downloaded_file.set_group(globals.localsession.user)
+	end if
+
 	print_good(file_to_download.path + " -> " + globals.localsession.pwd + "/" + file_to_download.name)
 end function
 
@@ -1846,7 +1859,13 @@ globals.metexpreter.upload = function(params)
 	end if
 
 	result = globals.localsession.shell.scp(file_to_upload.path, globals.session.pwd, globals.session.shell)
+
+	uploaded_file = get_file(globals.session.shell, globals.session.pwd + "/" + file_to_upload.name)
 	ln
+	if typeof(uploaded_file) == "file" then
+		uploaded_file.set_owner(globals.session.user)
+		uploaded_file.set_group(globals.session.user)
+	end if
 	print_good(file_to_upload.path + " -> " + globals.session.pwd + "/" + file_to_upload.name)
 end function
 
