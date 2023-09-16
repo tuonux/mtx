@@ -63,7 +63,7 @@ Just copy and paste the **mtx.src** code in **CodeEditor.exe** and build it with
     [+] Nmap - Discovered open port 22288
     [+] Nmap - Port 22288 respond with service ssh 1.0.0 on lan 192.168.0.3
 
-### Scan the target on port 22 with the MTX Framework built-in nmap command
+### Scan the target on port 22 with the MTX Framework built-in scan command
 
     mtx > scan 1.1.1.1 22
 
@@ -491,7 +491,7 @@ There are several function that you can use in your exploit code that extends MT
     kill         Terminate the process designated by the PID
     ps           List running processes
     shell        Opens a command shell on the victim machine
-    getsystem    Uses 15 built-in methods to gain sysadmin privileges
+    getsystem    Try to gain sysadmin privileges
     hashdump     Find and grab the hashes on entire filesystem
     decipher     Try to decipher a provided hash
     switch       Upload mtx, metaxploit and crypto and execute mtx on vicitm machine
