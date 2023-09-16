@@ -1632,6 +1632,7 @@ globals.metexpreter.help = function(params)
 	print("   shell        Opens a command shell on the victim machine")
 	print("   getsystem    Uses 15 built-in methods to gain sysadmin privileges")
 	print("   hashdump     Find and grab the hashes on entire filesystem")
+	print("   switch       Upload mtx, metaxploit and crypto and execute mtx on vicitm")
 end function
 
 globals.metexpreter.cat = function(params)
