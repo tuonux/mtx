@@ -11,6 +11,7 @@ Author: tuonux \<tuonux0@gmail.com\>
 ### Changelog
 
     1.0.1
+        - NEW:      "new" command for mtx that allow you to generate an exploit example in the working directory
         - NEW:      "switch" command for metexpreter that allow you to upload mtx, metaxploit and crypto on already metexpreter shell type session
         - IMPROVE:  "ipconfig" allow you to set network configuration directly with "ipconfig <device> <lan ip> <gateway>
         - FIX:      hashdump regex function get non hex characters
