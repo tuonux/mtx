@@ -1630,7 +1630,7 @@ globals.metexpreter.help = function(params)
 	print("   kill         Terminate the process designated by the PID")
 	print("   ps           List running processes")
 	print("   shell        Opens a command shell on the victim machine")
-	print("   getsystem    Uses 15 built-in methods to gain sysadmin privileges")
+	print("   getsystem    Try to gain sysadmin privileges")
 	print("   hashdump     Find and grab the hashes on entire filesystem")
 	print("   switch       Upload mtx, metaxploit and crypto and execute mtx on vicitm")
 end function
