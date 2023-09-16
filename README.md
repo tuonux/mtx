@@ -282,9 +282,47 @@ Just copy and paste the **mtx.src** code in **CodeEditor.exe** and build it with
 
     - tuonux
 
-### And we helped others today too... We can go!
+### And we helped others today too... But how if we want to scan the internal network with MTX Framework?
 
-    metexpreter > exit
+## We can just perform a "switch"!
+
+    metexpreter > switch
+
+    [*] Upload /home/tuonux/mtx
+
+    100%	719.6 KB/s	0 sec (6.1 MB of 6.1 MB copied)
+    Processing...
+
+    [+] /home/tuonux/mtx -> /root/mtx
+    [*] Upload /lib/metaxploit.so
+
+    100%	711.1 KB/s	0 sec (7380 Bytes of 7380 Bytes copied)
+    Processing...
+
+    [+] /lib/metaxploit.so -> /root/metaxploit.so
+    [*] Upload /lib/crypto.so
+
+    100%	750.0 KB/s	0 sec (0 Bytes of 0 Bytes copied)
+    Processing...
+
+    [+] /lib/crypto.so -> /root/crypto.so
+    [+] MTX Framework uploaded successfully
+
+    [*] Launch MTX Framework binary
+
+
+            _           __                                             _
+            | |         / _|                                           | |
+    _ __ ___ | |___  __ | |_ _ __ __ _ _ __ ___   _____      _____  _ __| | __
+    | '_ ` _ \| __\ \/ / |  _| '__/ _` | '_ ` _ \ / _ \ \ /\ / / _ \| '__| |/ /
+    | | | | | | |_ >  <  | | | | | (_| | | | | | |  __/\ V  V / (_) | |  |   <
+    |_| |_| |_|\__/_/\_\ |_| |_|  \__,_|_| |_| |_|\___| \_/\_/ \___/|_|  |_|\_\
+
+    Version 1.0.1 | made by tuonux ( https://github.com/tuonux/mtx )
+
+    + -- -=[       exploits:       0         ]=- -- +
+
+    mtx >
 
 ### Do you want to upgrade your exploits db?
 
