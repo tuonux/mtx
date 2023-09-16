@@ -617,8 +617,6 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
 		description = subtype
 	end if
 
-	ln
-
 	pwd = user_info.path
 
 	if globals.sessions.len == 0 then 
@@ -855,6 +853,7 @@ globals.mtx.reload = function(params = [], first_loading = false)
 		end if
 
 		current_content = current_file.get_content
+		if current_content == "" then return
 		current_content = current_content.replace("""", "")
 		exploit = {}
 		exploit.file = current_file
@@ -895,8 +894,8 @@ globals.mtx.search = function(params)
 	return make_table(globals.mtx.exploits, "Exploits", {"id": {"label": "name", "uf": false}, "disclosure_date": {"label": "Disclosure Date"}, "rank": {"label": "Rank"}, "name": {"label": "Description"}}, params)
 end function
 
-globals.mtx.set = function(params)
-	if globals.mtx.exploit == null then
+globals.mtx.set = function(params, is_g = false)
+	if not is_g and globals.mtx.exploit == null then
 		return print_error("No module charged")
 	end if
 
@@ -905,16 +904,16 @@ globals.mtx.set = function(params)
 	end if
 
 	if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
+		if is_g then return
 		return print_error(params[0].upper + " => Option not valid for this module")
-
 	end if
 
 	get_custom_object.MTXExploit.options[params[0].upper].selection = params[1]
-	print(params[0].upper + " => " + params[1])
+	if not is_g then print(params[0].upper + " => " + params[1])
 end function
 
-globals.mtx.unset = function(params)
-	if globals.mtx.exploit == null then
+globals.mtx.unset = function(params, is_g = false)
+	if not is_g and globals.mtx.exploit == null then
 		return print_error("No module charged")
 	end if
 
@@ -922,8 +921,15 @@ globals.mtx.unset = function(params)
 		return print("Usage: unset <option>")
 	end if
 
+	if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
+		if is_g then return
+		return print_error(params[0].upper + " => Option not valid for this module")
+	end if
+
 	get_custom_object.MTXExploit.options[params[0].upper].selection = ""
-	print(params[0].upper + " => removed")
+
+	if not is_g then print(params[0].upper + " => removed")
+
 end function
 
 globals.mtx.setg = function(params)
@@ -932,6 +938,7 @@ globals.mtx.setg = function(params)
 	end if
 
 	globals.mtx.config[params[0].upper] = params[1]
+	globals.mtx.set([params[0].upper, params[1]], true)
 	print(params[0].upper + " => " + params[1])
 end function
 
@@ -941,6 +948,7 @@ globals.mtx.unsetg = function(params)
 	end if
 
 	globals.mtx.config[params[0].upper] = ""
+	globals.mtx.unsetg([params[0].upper], true)
 	print(params[0].upper + " => removed")
 end function
 
@@ -948,7 +956,6 @@ globals.mtx.use = function(params)
 	if params.len == 0 then
 		return print("Usage: use <exploit name>")
 	end if
-
 	exploit_name = params[0].trim
 	globals.mtx.exploit = null
 	for raw_exploit in globals.mtx.exploits
@@ -961,6 +968,9 @@ globals.mtx.use = function(params)
 	if not globals.mtx.exploit then
 		return print_error("Error: " + params[0] + " module not found")
 	end if
+
+	get_custom_object.MTXExploit = {}
+	get_custom_object.MTXExploit.options = {}
 
 	globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
 	globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
@@ -1190,7 +1200,6 @@ globals.mtx.scan = function(params)
 	print_good("Vulnerables addresses founds: " + scan_addresses.len, target + ":" + port)
 
 	for address in scan_addresses
-		print_info(["Perform scan on", address + "..."].join(" "), target + ":" + port)
 
 		scan_variables_results = metaxploit.scan_address(meta_lib, address)
 
@@ -1199,15 +1208,15 @@ globals.mtx.scan = function(params)
 			return 
 		end if
 
-		print_good("Scan on " + address + " completed successfully!", target + ":" + port)
 		scan_variables_results = scan_variables_results.replace("* ", " Require: ")
 		scan_variables_results = scan_variables_results.split("\n")[2 : ].join(char(10))
-		print_info(scan_variables_results, target + ":" + port)
-		print_info("Dump exploit info...", target + ":" + port)
+		//print_info(scan_variables_results, target + ":" + port)
 		vulnerabilities = get_exploit_info(scan_variables_results)
 
 		for vulnerability in vulnerabilities
+			print_info("Vulnerability on " + address + " => " + vulnerability.variable, target + ":" + port)
 			overlow = meta_lib.overflow(address, vulnerability.variable)
+			if overlow == null or overlow == 0 then ln
 			type = typeof(overlow)
 
 			if typeof(overlow) == "null" then
@@ -1238,11 +1247,11 @@ globals.mtx.scan = function(params)
 			exploit.name = "exploits/" + compose_exploit_name(exploit)
 			exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace(".src", "")
 			exploit.overflow = overlow
+			ln
 			print_good("Successfully created new exploit: " + exploit.id)
+			ln
 			write_exploit(exploit)
 		end for
-
-		print_good("Exploit info successfully dumped!", target + ":" + port)
 	end for
 
 end function
