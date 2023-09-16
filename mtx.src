@@ -1935,7 +1935,7 @@ globals.metexpreter.clearav = function(params)
 end function
 
 globals.metexpreter.execute = function(params)
-	if globals.session.type == "file" then
+	if globals.session.type != "shell" then
 		return print_error("Only shell and computer sessions can perform this command")
 
 	end if
