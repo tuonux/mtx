@@ -1698,6 +1698,10 @@ globals.metexpreter.download = function(params)
 		return print("Usage: download <file path>")
 	end if
 
+	if params[0].indexOf("/") == null then
+		params[0] = globals.session.pwd + "/" + params[0]
+	end if
+
 	file_to_download = get_file(globals.session.shell, params[0], true)
 
 	if typeof(file_to_download) == "string" then
@@ -1831,6 +1835,10 @@ globals.metexpreter.upload = function(params)
 
 	if params.len == 0 then
 		return print("Usage: upload <file path>")
+	end if
+
+	if params[0].indexOf("/") == null then
+		params[0] = globals.localsession.pwd + "/" + params[0]
 	end if
 
 	file_to_upload = get_file(globals.localsession.shell, params[0], true)
@@ -1984,7 +1992,7 @@ globals.metexpreter.hashdump = function(params)
 	scan_dir("/")
 
 	if out.len == 0 then
-		return 
+		return print_error("0 results founds", "Hashdump")
 	end if
 
 	print(format_columns(out.join("\n")))
