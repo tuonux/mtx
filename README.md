@@ -4,6 +4,13 @@ Just a funny porting of the real Metasploit Framework written in GreyScript lang
 
 Author: tuonux \<tuonux0@gmail.com\>
 
+### Changelog
+
+    1.0.1
+        - NEW: "switch" command for metexpreter that allow you to upload mtx, metaxploit and crypto on already metexpreter shell type session
+        - FIX: hashdump regex function get non hex characters
+        - FIX: upload and download function set group and owner of the current shell session
+
 ## Play on Grey Hack like a pseudo-real hacker!
 
 MTX Framework offer the possibility to get you in a pseudo-real hacker experience like the famous Metasploit command line based interface!
