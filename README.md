@@ -4,6 +4,8 @@ Just a funny porting of the real Metasploit Framework written in GreyScript lang
 
 Author: tuonux \<tuonux0@gmail.com\>
 
+<iframe width="100%" height="300" src="https://www.youtube.com/embed/QtLqkCrDPZY?si=0TChQOkc5m7oqXTK" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 ### Changelog
 
     1.0.1
