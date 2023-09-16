@@ -944,17 +944,15 @@ globals.mtx.use = function(params)
 
 	exploit_name = params[0].trim
 	globals.mtx.exploit = null
-
 	for raw_exploit in globals.mtx.exploits
-		if raw_exploit.id == exploit_name then
+		if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit)+1) ) then
 			globals.mtx.exploit = raw_exploit
 			break
 		end if
-
 	end for
 
 	if not globals.mtx.exploit then
-		return print("Error: " + params[0] + " module not found")
+		return print_error("Error: " + params[0] + " module not found")
 	end if
 
 	globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
@@ -1538,7 +1536,7 @@ end function
 
 globals.mtx["?"] = @globals.mtx.help
 
-globals.mtx.exit = function()
+globals.mtx.exit = function(params = [])
 	exit
 end function
 
@@ -1546,7 +1544,7 @@ globals.mtx.quit = @globals.mtx.exit
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 globals.metexpreter = {}
 
-globals.metexpreter.start = function()
+globals.metexpreter.start = function(params = [])
 	ln
 
 	while hash(globals.session) != hash(globals.localsession)
