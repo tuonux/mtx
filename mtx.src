@@ -1971,7 +1971,7 @@ globals.metexpreter.hashdump = function(params)
 		for file in start_dir.get_files + start_dir.get_folders
 			if not file.is_folder and not file.is_binary and file.has_permission("r") then
 				file_content = file.get_content.replace("\n", char(10)).split(char(10))
-				vars = "qwertyuiopasdfghjklzxcvbnm1234567890"
+				vars = "abcdef1234567890"
 
 				for line in file_content
 					content_new = line
