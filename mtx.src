@@ -1877,6 +1877,18 @@ globals.metexpreter.ipconfig = function(params)
 
 	end if
 
+	if params.len == 3 then 
+		device     = params[0].trim
+		local_ip   = params[1].trim
+		gateway_ip = params[2].trim
+		if not is_valid_ip(local_ip) then return print_error(local_ip + " is not a valid ip address")
+		if not is_valid_ip(local_ip) then return print_error(gateway_ip + " is not a valid ip address")
+		output = globals.session.computer.connect_ethernet(device, local_ip, gateway_ip)
+		if output.len > 0 then return print_error(output)
+		print_good("Network settings updated successfully")
+		ln
+	end if
+
 	if globals.session.computer.is_network_active then
 		if globals.session.computer.active_net_card == "WIFI" then
 			output = "\nConnected to Wi-Fi"
