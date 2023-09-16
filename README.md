@@ -314,62 +314,65 @@ This object is the core of the entire framework and exploits comunication!
 
 In this example you can see how you can write an exploit!
 
-    // This module requires MTX Framework:     https://github.com/tuonux/mtx
-    // Current source:              		   https://github.com/tuonux/mtx
+```
+// This module requires MTX Framework:     https://github.com/tuonux/mtx
+// Current source:              		   https://github.com/tuonux/mtx
 
-    MTXExploit = get_custom_object.MTXExploit
-    MTXExploit.name  = "<enter the exploit name>"
-    MTXExploit.description = "<enter the exploit description>"
-    MTXExploit.author = "<enter the exploit author>"
-    MTXExploit.rank = "<enter a rank like Low|Average|Normal|Good|Great|Excellent>"
-    MTXExploit.privileged = "<enter 1|0 if your exploit get elevate privileges>"
-    MTXExploit.disclosure_date = "<enter the disclosure date>"
-    MTXExploit.options["<enter the option 1>"] = {"required": <is required? 1|0>, "default": "<default value>", "description": "<option description>"}
-    MTXExploit.options["<enter the option 2>"] = {"required": <is required? 1|0>, "default": "<default value>", "description": "<option description>"}
-    MTXExploit.options["<enter the option 3>"] = {"required": <is required? 1|0>, "default": "<default value>", "description": "<option description>"}
+MTXExploit = get_custom_object.MTXExploit
+MTXExploit.name  = "<enter the exploit name>"
+MTXExploit.description = "<enter the exploit description>"
+MTXExploit.author = "<enter the exploit author>"
+MTXExploit.rank = "<enter a rank like Low|Average|Normal|Good|Great|Excellent>"
+MTXExploit.privileged = "<enter 1|0 if your exploit get elevate privileges>"
+MTXExploit.disclosure_date = "<enter the disclosure date>"
+MTXExploit.options["<enter the option 1>"] = {"required": <is required? 1|0>, "default": "<default value>", "description": "<option description>"}
+MTXExploit.options["<enter the option 2>"] = {"required": <is required? 1|0>, "default": "<default value>", "description": "<option description>"}
+MTXExploit.options["<enter the option 3>"] = {"required": <is required? 1|0>, "default": "<default value>", "description": "<option description>"}
 
-    // Every exploit need a check funtion in order to declare if the target is vulnerable or not
-    // Mabybe a check on the library and the library version can help!
-    // The options Map contains the value of the options set by the user.
-    MTXExploit.check = function(options)
-        target          = options.RHOST
-        port            = options.RPORT.to_int
-        argument        = options.RLANIP
-        library_name    = "kernel_router.so"
-        library_version = "1.0.5"
-        address         = "0x4A033B44"
-        variable        = "mored_"
-        print_info("Attempt to connect on remote host...", target+":"+port)
-        net = metaxploit.net_use(target, port)
-        if not net then return print_error("Unable to connect to remote host", target+":"+port)
-        print_good("Succesfully connected!", target+":"+port)
-        if net.dump_lib.lib_name != library_name or net.dump_lib.version.to_int > library_version.to_int then return print_error("Different library. Required: kernel_router.so <= 1.0.5 ", target+":"+port)
-        return true
-    end function
+// Every exploit need a check funtion in order to declare if the target is vulnerable or not
+// Mabybe a check on the library and the library version can help!
+// The options Map contains the value of the options set by the user.
+MTXExploit.check = function(options)
+    target          = options.RHOST
+    port            = options.RPORT.to_int
+    argument        = options.RLANIP
+    library_name    = "kernel_router.so"
+    library_version = "1.0.5"
+    address         = "0x4A033B44"
+    variable        = "mored_"
+    print_info("Attempt to connect on remote host...", target+":"+port)
+    net = metaxploit.net_use(target, port)
+    if not net then return print_error("Unable to connect to remote host", target+":"+port)
+    print_good("Succesfully connected!", target+":"+port)
+    if net.dump_lib.lib_name != library_name or net.dump_lib.version.to_int > library_version.to_int then return print_error("Different library. Required: kernel_router.so <= 1.0.5 ", target+":"+port)
+    return true
+end function
 
-    // This is the run() function to see your exploit in action and perform overflows and other commands that you need!
-    // The register_session(overflow_result) make a new sessions registered to the MTX Framework
-    // The options Map contains the value of the options set by the user.
-    MTXExploit.run = function(options)
-        target          = options.RHOST
-        port            = options.RPORT.to_int
-        argument        = options.RLANIP
-        library_name    = "kernel_router.so"
-        library_version = "1.0.5"
-        address         = "0x4A033B44"
-        variable        = "mored_"
-        print_info("Attempt to connect on remote host...", target+":"+port)
-        net = metaxploit.net_use(target, port)
-        if not net then return print_error("Unable to connect to remote host", target+":"+port)
-        print_good("Succesfully connected!", target+":"+port)
-        if net.dump_lib.lib_name != library_name or net.dump_lib.version.to_int > library_version.to_int then return print_error("Different library. Required: kernel_router.so <= 1.0.5 ", target+":"+port)
-        print_good("Library check: OK")
-        print_info("Attempt to oveflow the target library", target+":"+port)
-        overflow_result = net.dump_lib.overflow(address, variable, argument)
-        if not overflow_result then return print_error("Unable to perform an overflow to the target library. Try to check the requirements")
-        register_session(overflow_result)
-        return true
-    end function
+// This is the run() function to see your exploit in action and perform overflows and other commands that you need!
+// The register_session(overflow_result) make a new sessions registered to the MTX Framework
+// The options Map contains the value of the options set by the user.
+MTXExploit.run = function(options)
+    target          = options.RHOST
+    port            = options.RPORT.to_int
+    argument        = options.RLANIP
+    library_name    = "kernel_router.so"
+    library_version = "1.0.5"
+    address         = "0x4A033B44"
+    variable        = "mored_"
+    print_info("Attempt to connect on remote host...", target+":"+port)
+    net = metaxploit.net_use(target, port)
+    if not net then return print_error("Unable to connect to remote host", target+":"+port)
+    print_good("Succesfully connected!", target+":"+port)
+    if net.dump_lib.lib_name != library_name or net.dump_lib.version.to_int > library_version.to_int then return print_error("Different library. Required: kernel_router.so <= 1.0.5 ", target+":"+port)
+    print_good("Library check: OK")
+    print_info("Attempt to oveflow the target library", target+":"+port)
+    overflow_result = net.dump_lib.overflow(address, variable, argument)
+    if not overflow_result then return print_error("Unable to perform an overflow to the target library. Try to check the requirements")
+    register_session(overflow_result)
+    return true
+end function
+
+```
 
 It's a good pratice store your exploits under "custom" directory like example:
 
