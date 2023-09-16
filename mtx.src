@@ -1,6 +1,7 @@
 // # MTX Framework
 // Author: tuonux <tuonux0@gmail.com>
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
+VERSION = "1.0.1"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
 metaxploit = include_lib(metaxploit_path)
@@ -33,7 +34,7 @@ print(" _ __ ___ | |___  __ | |_ _ __ __ _ _ __ ___   _____      _____  _ __| | 
 print("| '_ ` _ \| __\ \/ / |  _| '__/ _` | '_ ` _ \ / _ \ \ /\ / / _ \| '__| |/ /")
 print("| | | | | | |_ >  <  | | | | | (_| | | | | | |  __/\ V  V / (_) | |  |   <")
 print("|_| |_| |_|\__/_/\_\ |_| |_|  \__,_|_| |_| |_|\___| \_/\_/ \___/|_|  |_|\_\")
-print("\nVersion 1.0.0 | made by tuonux ( https://github.com/tuonux/mtx )")
+print("\nVersion " + VERSION + " | made by tuonux ( https://github.com/tuonux/mtx )")
 end function
 
 exec_params = params
@@ -2159,6 +2160,25 @@ globals.metexpreter.decipher = function(params)
 	print_good(params[0] + " -> " + result)
 	return result
 end function
+
+globals.metexpreter.switch = function(params)
+	if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
+	print_info("Upload " + program_path)
+	ln
+	globals.metexpreter.upload([program_path])
+	print_info("Upload " + metaxploit_path)
+	ln
+	globals.metexpreter.upload([metaxploit_path])
+	print_info("Upload " + crypto_path)
+	ln
+	globals.metexpreter.upload([crypto_path])
+	print_good("MTX Framework uploaded successfully")
+	ln
+	print_info("Launch MTX Framework binary")
+	ln
+	globals.session.shell.launch(globals.session.pwd + "/" + program_path.split("/")[-1])
+end function
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 globals.mtx.start
