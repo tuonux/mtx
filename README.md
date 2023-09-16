@@ -7,9 +7,10 @@ Author: tuonux \<tuonux0@gmail.com\>
 ### Changelog
 
     1.0.1
-        - NEW: "switch" command for metexpreter that allow you to upload mtx, metaxploit and crypto on already metexpreter shell type session
-        - FIX: hashdump regex function get non hex characters
-        - FIX: upload and download function set group and owner of the current shell session
+        - NEW:      "switch" command for metexpreter that allow you to upload mtx, metaxploit and crypto on already metexpreter shell type session
+        - IMPROVE:  "ipconfig" allow you to set network configuration directly with "ipconfig <device> <lan ip> <gateway>
+        - FIX:      hashdump regex function get non hex characters
+        - FIX:      upload and download function set group and owner of the current shell session
 
 ## Play on Grey Hack like a pseudo-real hacker!
 
@@ -446,7 +447,7 @@ There are several function that you can use in your exploit code that extends MT
     rm           Delete a file
     rmdir        Remove directory on the victim system
     upload       Upload a file from the attacker system to the victim
-    ipconfig     Displays network interfaces with key information including IP address, etc.
+    ipconfig     Displays network interfaces with key information including IP address
     execute      Executes a /bin command
     getuid       Get the user that the server is running as
     kill         Terminate the process designated by the PID
@@ -455,6 +456,7 @@ There are several function that you can use in your exploit code that extends MT
     getsystem    Uses 15 built-in methods to gain sysadmin privileges
     hashdump     Find and grab the hashes on entire filesystem
     decipher     Try to decipher a provided hash
+    switch       Upload mtx, metaxploit and crypto and execute mtx on vicitm machine
 
 ## Next Goals
 
