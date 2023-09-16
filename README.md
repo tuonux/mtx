@@ -429,7 +429,6 @@ There are several function that you can use in your exploit code that extends MT
     cd           Change directory on the victim
     del          Delete a file on the victim
     download     Download a file from the victim system to the attacker system
-    edit         Edit a file with vim
     getlwd       Print the local directory
     getwd        Print working directory
     lcd          Change local directory
