@@ -1521,7 +1521,6 @@ globals.mtx["new"] = function(params)
 		exploit_example_path = globals.localsession.pwd + "/" + "exploit_" + current_date.split(" ")[0].replace("/", "_") + ".src"
 		write_file(globals.localsession, exploit_example_path, get_exploit_example)
 		print_info("New exploit example created -> " + exploit_example_path)
-		globals.metexpreter.cat([exploit_example_path])
 		return
 	end if
 end function
