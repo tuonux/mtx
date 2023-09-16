@@ -1896,9 +1896,9 @@ globals.metexpreter.ipconfig = function(params)
 			output = "\nEthernet connection:"
 		end if
 
-		lip = globals.session.local_ip
-		pip = globals.session.public_ip
-		gw = globals.session.computer.network_gateway
+		lip = globals.session.computer.local_ip
+		pip = globals.session.computer.public_ip
+		gw  = globals.session.computer.network_gateway
 	else
 		lip = "0.0.0.0"
 		pip = "0.0.0.0"
