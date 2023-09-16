@@ -8,7 +8,7 @@ Author: tuonux \<tuonux0@gmail.com\>
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/QtLqkCrDPZY/0.jpg)](http://www.youtube.com/watch?v=QtLqkCrDPZY "GREY HACK - MTX FRAMEWORK - HACK UNREACHABLES TARGETS")
 
-## Click to see how to build your first exploit
+## Click to see how to write your first exploit
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/KoSjqsYChvE/0.jpg)](http://www.youtube.com/watch?v=KoSjqsYChvE "GREY HACK - MTX FRAMEWORK: WRITE YOUR FIRST EXPLOIT")
 
