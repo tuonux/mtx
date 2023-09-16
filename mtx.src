@@ -1215,8 +1215,8 @@ globals.mtx.scan = function(params)
 
 		for vulnerability in vulnerabilities
 			print_info("Vulnerability on " + address + " => " + vulnerability.variable, target + ":" + port)
+			ln
 			overlow = meta_lib.overflow(address, vulnerability.variable)
-			if overlow == null or overlow == 0 then ln
 			type = typeof(overlow)
 
 			if typeof(overlow) == "null" then
