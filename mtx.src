@@ -1549,6 +1549,7 @@ globals.mtx.help = function(params)
 	print("   nmap         Scan the target to get router info, firewall rules and info about target ports")
     print("   discover     Scan the globe with random IPs and write the exploits localy")
     print("   scan         Scan target port and if vulnerable write the exploits localy")
+    print("   new          Generate new template example module")
 	
 end function
 

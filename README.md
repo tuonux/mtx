@@ -468,6 +468,7 @@ There are several function that you can use in your exploit code that extends MT
     nmap         Scan the target to get router info, firewall rules and info about target ports
     discover     Scan the globe with random IPs and write the exploits localy
     scan         Scan target port and if vulnerable write the exploits localy
+    new          Generate new template example modules
 
 ## metexpreter console commands
 
