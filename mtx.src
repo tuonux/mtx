@@ -1592,6 +1592,7 @@ globals.mtx.help = function(params)
     print("   discover     Scan the globe with random IPs and write the exploits localy")
     print("   scan         Scan target port and if vulnerable write the exploits localy")
     print("   new          Generate new template example module")
+    print("   install      Install a service on the victim machine")
 	
 end function
 
@@ -2245,6 +2246,29 @@ globals.metexpreter.switch = function(params)
 	print_info("Launch MTX Framework binary")
 	ln
 	globals.session.shell.launch(globals.session.pwd + "/" + program_path.split("/")[-1])
+end function
+
+globals.metexpreter.install = function(params)
+	if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
+	if params.len == "0" then return print("Usage: install <ssh|http|ftp|chat|repository|sql|smtp>")
+	service = params[0].lower
+	if ["ssh", "http", "ftp", "chat", "repository", "sql", "smtp"].indexOf(service) == null then return print_error(service + " -> Invalid service")
+	library = "lib"+service+".so"
+	print_info("Update packages list...")
+	globals.session.shell.launch("/bin/apt-get", "update")
+	print_info("Install " + library + "...")
+	globals.session.shell.launch("/bin/apt-get", "install " + library)
+	install_code = "library = include_lib(""/lib/"+library+"""); if not library then return; library.install_service"
+	print_info("Write the installation and starup code in /home/guest/install_"+service+".src"+"...")
+	write_file(globals.session, "/home/guest/install_"+service+".src", install_code)
+	install_code_file = get_file(globals.session.shell, "/home/guest/install_"+service+".src")
+	if typeof(install_code_file) != "file" then return print_error("Unable to write the install service source in /home/guest/install_"+service+".src")
+	print_info("Build /home/guest/install_"+service+".src...")
+	install_build_result = globals.session.shell.build("/home/guest/install_"+service+".src", "/home/guest")
+	if install_build_result == 0 then return print_error("Unable to build " + "/home/guest/install_"+service+".src")
+	print_info("Launch the install_" + service + " binary")
+	globals.session.shell.launch("/home/guest/install_" + service)
+	print_good("Service " + service + " installation complete!")
 end function
 
 
