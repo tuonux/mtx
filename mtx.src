@@ -1,7 +1,7 @@
 // # MTX Framework
 // Author: tuonux <tuonux0@gmail.com>
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
 metaxploit = include_lib(metaxploit_path)
@@ -62,6 +62,12 @@ end function
 
 string.italic = function()
 	self = "<i>" + self + "</i>"
+	return self
+end function
+
+string.clean = function()
+	self = self + ""
+	self = self.replace(" ", char(160))
 	return self
 end function
 
@@ -284,7 +290,7 @@ end function
 
 write_exploit = function(exploit)
 	rank = 6
-	phrases = ["Overflow on", "Library", "Vulnerable"]
+	phrases = ["Overflow on", "Outdated library", "Vulnerable variable on"]
 	phrase = phrases[floor(rnd * phrases.len)]
 	name = phrase + " " + exploit.library + " " + exploit.version
 	req = []
@@ -302,7 +308,7 @@ write_exploit = function(exploit)
 	if exploit.raw_info.lower.indexOf("router") then
 		rank = rank - 2
 
-		req.push("forwarded port")
+		// req.push("forwarded port")
 	end if
 
 	if exploit.raw_info.lower.indexOf("users") and (exploit.raw_info.lower.indexOf("minimum number of 1") == null and exploit.raw_info.lower.indexOf("minimum number of 2") == null) then
@@ -311,12 +317,12 @@ write_exploit = function(exploit)
 
 	if exploit.raw_info.lower.indexOf("active user") then
 		rank = rank - 1
-		req.push("an active user")
+		// req.push("an active user")
 	end if
 
 	if exploit.library.indexOf("router") != null and exploit.raw_info.lower.indexOf("local network") then
 		rank = rank - 1
-		req.push("target on same network")
+		// req.push("target on same network")
 	end if
 
 	if req.len > 0 then
@@ -712,20 +718,8 @@ make_table = function(arr, name, columns, search)
 end function
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-root_shell = get_shell
-
-if active_user != "root" then
-	print("\nIn order to use this framerwork you need to be logged in as root.\n")
-	root_shell = null
-
-	while not root_shell
-		root_shell = get_shell("root", user_input("Enter your root password: ", true))
-	end while
-
-end if
-
 globals.sessions = []
-register_session(root_shell)
+register_session(get_shell)
 globals.localsession = globals.sessions[0]
 globals.session = globals.localsession
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -860,7 +854,7 @@ globals.mtx.reload = function(params = [], first_loading = false)
 		exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace(".src", "")
 		exploit.type = exploit.id.split("exploit/")[1].split("/")[0]
 
-		for index in ["name", "rank", "disclosure_date"]
+		for index in ["name", "rank", "disclosure_date", "privileged", "description"]
 			if not exploit.hasIndex(index) then
 				exploit[index] = "-----"
 			end if
@@ -1026,8 +1020,8 @@ globals.mtx.run = function(params)
 end function
 
 globals.mtx.show = function(params)
-	if params.len == 0 or ["exploits", "options"].indexOf(params[0]) == null then
-		return print("Usage: show <exploits|options>")
+	if params.len == 0 or ["exploits", "options", "info"].indexOf(params[0]) == null then
+		return print("Usage: show <exploits|options|info>")
 	end if
 
 	if params[0] == "exploits" then
@@ -1055,6 +1049,46 @@ globals.mtx.show = function(params)
 		end for
 
 		return print(format_columns(out.join("\n")))
+
+	end if
+
+	if params[0] == "info" then
+		params.pull
+		if params.len == 0 then
+			return print("Usage: show info <exploit name>")
+		end if
+		exploit_name = params[0].trim
+		globals.mtx.exploit = null
+		for raw_exploit in globals.mtx.exploits
+			if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit)+1) ) then
+				globals.mtx.exploit = raw_exploit
+				break
+			end if
+		end for
+
+		if globals.mtx.exploit == null then
+			return print_error("No exploits found ")
+		end if
+
+		print("Exploit info")
+		print("============")
+
+		out = []
+		out.push(" Path " + globals.mtx.exploit.file.path.clean)
+		out.push(" Type " + globals.mtx.exploit.type.clean)
+		out.push(" Name " + globals.mtx.exploit.name.clean)
+		out.push(" Rank " + globals.mtx.exploit.rank.clean)
+		out.push(" "+"Disclosure date".clean + " " + globals.mtx.exploit.disclosure_date.clean)
+		privileged = "no"
+		if globals.mtx.exploit.privileged == "1" then privileged = "yes"
+		out.push(" Privileged " + privileged)
+
+		print(format_columns(out.join("\n")))
+		ln
+		print("Description")
+		print("===========")
+		print( globals.mtx.exploit.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n===========\n"))
+
 
 	end if
 
