@@ -1058,15 +1058,15 @@ globals.mtx.show = function(params)
 			return print("Usage: show info <exploit name>")
 		end if
 		exploit_name = params[0].trim
-		globals.mtx.exploit = null
-		for raw_exploit in globals.mtx.exploits
-			if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit)+1) ) then
-				globals.mtx.exploit = raw_exploit
+		exploit_found = null
+		for raw_exploit in exploit_founds
+			if raw_exploit.id == exploit_name or (exploit_name.to_int == (exploit_founds.indexOf(raw_exploit)+1) ) then
+				exploit_found = raw_exploit
 				break
 			end if
 		end for
 
-		if globals.mtx.exploit == null then
+		if exploit_found == null then
 			return print_error("No exploits found ")
 		end if
 
@@ -1074,20 +1074,20 @@ globals.mtx.show = function(params)
 		print("============")
 
 		out = []
-		out.push(" Path " + globals.mtx.exploit.file.path.clean)
-		out.push(" Type " + globals.mtx.exploit.type.clean)
-		out.push(" Name " + globals.mtx.exploit.name.clean)
-		out.push(" Rank " + globals.mtx.exploit.rank.clean)
-		out.push(" "+"Disclosure date".clean + " " + globals.mtx.exploit.disclosure_date.clean)
+		out.push(" Path " + exploit_found.file.path.clean)
+		out.push(" Type " + exploit_found.type.clean)
+		out.push(" Name " + exploit_found.name.clean)
+		out.push(" Rank " + exploit_found.rank.clean)
+		out.push(" "+"Disclosure date".clean + " " + exploit_found.disclosure_date.clean)
 		privileged = "no"
-		if globals.mtx.exploit.privileged == "1" then privileged = "yes"
+		if exploit_found.privileged == "1" then privileged = "yes"
 		out.push(" Privileged " + privileged)
 
 		print(format_columns(out.join("\n")))
 		ln
 		print("Description")
 		print("===========")
-		print( globals.mtx.exploit.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n===========\n"))
+		print( exploit_found.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n===========\n"))
 
 
 	end if
