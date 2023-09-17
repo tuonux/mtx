@@ -1059,8 +1059,8 @@ globals.mtx.show = function(params)
 		end if
 		exploit_name = params[0].trim
 		exploit_found = null
-		for raw_exploit in exploit_founds
-			if raw_exploit.id == exploit_name or (exploit_name.to_int == (exploit_founds.indexOf(raw_exploit)+1) ) then
+		for raw_exploit in globals.mtx.exploits
+			if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit)+1) ) then
 				exploit_found = raw_exploit
 				break
 			end if
@@ -2158,6 +2158,7 @@ globals.metexpreter.getsystem = function(params)
 	end if
 
 	register_session(get_custom_object.reverse_shell)
+	globals.session = globals.sessions[-1]
 	print_good("Getsystem command successfully done! New root reverse shell acquired!")
 end function
 
