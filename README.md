@@ -4,6 +4,10 @@ Just a funny porting of the real Metasploit Framework written in GreyScript lang
 
 Author: tuonux \<tuonux0@gmail.com\>
 
+## Play on Grey Hack like a pseudo-real hacker!
+
+MTX Framework offer the possibility to get you in a pseudo-real hacker experience like the famous Metasploit command line based interface!
+
 ## Click to see the youtube video with MTX Framework in action
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/QtLqkCrDPZY/0.jpg)](http://www.youtube.com/watch?v=QtLqkCrDPZY "GREY HACK - MTX FRAMEWORK - HACK UNREACHABLES TARGETS")
@@ -16,9 +20,9 @@ Author: tuonux \<tuonux0@gmail.com\>
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/KoSjqsYChvE/0.jpg)](http://www.youtube.com/watch?v=KoSjqsYChvE "GREY HACK - MTX FRAMEWORK: WRITE YOUR FIRST EXPLOIT")
 
-## Play on Grey Hack like a pseudo-real hacker!
+## Click to see how perform the getystem command to gain high privileges automatically
 
-MTX Framework offer the possibility to get you in a pseudo-real hacker experience like the famous Metasploit command line based interface!
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/sSTlbYibLyQ/0.jpg)](http://www.youtube.com/watch?v=sSTlbYibLyQ "GREY HACK - MTX FRAMEWORK: GETSYSTEM COMMAND")
 
 ## Scan, Discover, Exploit and more!
 
