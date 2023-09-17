@@ -12,7 +12,7 @@ MTX Framework offer the possibility to get you in a pseudo-real hacker experienc
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/QtLqkCrDPZY/0.jpg)](http://www.youtube.com/watch?v=QtLqkCrDPZY "GREY HACK - MTX FRAMEWORK - HACK UNREACHABLES TARGETS")
 
-## Click to see how perform the getystem command to gain high privileges automatically
+## Click to see how to perform the getystem command to gain high privileges automatically
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/sSTlbYibLyQ/0.jpg)](http://www.youtube.com/watch?v=sSTlbYibLyQ "GREY HACK - MTX FRAMEWORK: GETSYSTEM COMMAND")
 
