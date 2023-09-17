@@ -12,6 +12,10 @@ MTX Framework offer the possibility to get you in a pseudo-real hacker experienc
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/QtLqkCrDPZY/0.jpg)](http://www.youtube.com/watch?v=QtLqkCrDPZY "GREY HACK - MTX FRAMEWORK - HACK UNREACHABLES TARGETS")
 
+## Click to see how perform the getystem command to gain high privileges automatically
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/sSTlbYibLyQ/0.jpg)](http://www.youtube.com/watch?v=sSTlbYibLyQ "GREY HACK - MTX FRAMEWORK: GETSYSTEM COMMAND")
+
 ## Click to see how to perform a lanswitch attack with MTX Framework
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/HYcQ5P-5-2I/0.jpg)](http://www.youtube.com/watch?v=HYcQ5P-5-2I "GREY HACK - MTX FRAMEWORK - PERFORM A LANSWITCH ATTACK")
@@ -19,10 +23,6 @@ MTX Framework offer the possibility to get you in a pseudo-real hacker experienc
 ## Click to see how to write your first exploit
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/KoSjqsYChvE/0.jpg)](http://www.youtube.com/watch?v=KoSjqsYChvE "GREY HACK - MTX FRAMEWORK: WRITE YOUR FIRST EXPLOIT")
-
-## Click to see how perform the getystem command to gain high privileges automatically
-
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/sSTlbYibLyQ/0.jpg)](http://www.youtube.com/watch?v=sSTlbYibLyQ "GREY HACK - MTX FRAMEWORK: GETSYSTEM COMMAND")
 
 ## Scan, Discover, Exploit and more!
 
