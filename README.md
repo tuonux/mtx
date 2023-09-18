@@ -474,7 +474,7 @@ end function
 
 ```
 
-You can store your proxy under:
+You can store your payload under:
 
     /usr/share/mtx/payloads/<my_payload_name>.src
 
