@@ -24,6 +24,10 @@ MTX Framework offer the possibility to get you in a pseudo-real hacker experienc
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/KoSjqsYChvE/0.jpg)](http://www.youtube.com/watch?v=KoSjqsYChvE "GREY HACK - MTX FRAMEWORK: WRITE YOUR FIRST EXPLOIT")
 
+## Click to see how to write your first payload
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/IyMqAV8KE8M/0.jpg)](http://www.youtube.com/watch?v=IyMqAV8KE8M "GREY HACK - MTX FRAMEWORK: WRITE YOUR FIRST PAYLOAD")
+
 ## Scan, Discover, Exploit and more!
 
 You have a lot o commands to perform and hack your target in the game!
