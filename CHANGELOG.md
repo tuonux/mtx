@@ -2,7 +2,7 @@
 
 ### 1.1.0
 
-- Possibility to create and load custom payloads that make the exploit
+- Possibility to create and load custom payloads that make post exploitation easy and funny!
 - New payload location under /usr/share/mtx/payloads
 - New command "new payload" for mtx that allow you to generate a payload example
 - Payloads counter in the main screen
