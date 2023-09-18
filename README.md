@@ -468,7 +468,7 @@ MTXPayload.options["STRING"] = {"required": 1, "default": "world", "description"
 // options:       Options setted with "set <option> <value>" command
 MTXPayload.run = function(remote_object, local_shell, options)
     object_type = typeof(remote_object)
-	if object_type != "shell" then return print_error("This payload works with shell sessions only")
+    if object_type != "shell" then return print_error("This payload works with shell sessions only")
     print_good("Hello " + options["STRING"] + " i'm a remote shell and my ip is: " + remote_object.host_computer.public_ip)
 end function
 
