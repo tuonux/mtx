@@ -232,6 +232,9 @@ get_exploit_example = function()
 	out.push("MTXExploit.options[""ARGUMENT""]         = {""required"": [argument_required], ""default"": """", ""description"": ""[argument_drescription]""}")
 	out.push("")
 
+	out.push("// Every exploit need a check funtion in order to declare if the target is vulnerable or not")
+	out.push("// Mabybe a check on the library and the library version can help!")
+	out.push("// The options Map contains the value of the options set by the user.")
 	out.push("MTXExploit.check = function(options)")
 
 	out.push("		target          = options.RHOST")
@@ -256,6 +259,9 @@ get_exploit_example = function()
 
 	out.push("")
 
+	out.push("// This is the run() function to see your exploit in action and perform overflows and other commands that you need!")
+	out.push("// The register_session(overflow_result) make a new sessions registered to the MTX Framework")
+	out.push("// The options Map contains the value of the options set by the user.")
 	out.push("MTXExploit.run = function(options)")
 
 	out.push("		target          = options.RHOST")
@@ -291,38 +297,24 @@ end function
 
 get_payload_example = function()
 	out = []
-	out.push("// This module requires MTX Framework:   https://github.com/tuonux/mtx")
-	out.push("// Current source:                       https://github.com/tuonux/mtx")
+	out.push("// This module requires MTX Framework:     https://github.com/tuonux/mtx")
+	out.push("// Current source:              		   https://github.com/tuonux/mtx")
 	out.push("")
-	out.push("MTXPayload                  = get_custom_object.MTXPayload")
-	out.push("MTXPayload.name             = ""[name]""")
-	out.push("MTXPayload.description      = ""[description]""")
-	out.push("MTXPayload.author           = ""[author]""")
-	out.push("MTXPayload.options[""LHOST""] = {""required"": 1, ""default"": ""127.0.0.1"", ""description"": ""Local IP""}")
-	out.push("MTXPayload.options[""LPORT""] = {""required"": 1, ""default"": ""1222"", ""description"": ""Local port""}")
+	out.push("MTXPayload                   = get_custom_object.MTXPayload")
+	out.push("MTXPayload.name              = ""<enter the payload name>""")
+	out.push("MTXPayload.description       = ""<enter the payload description>""")
+	out.push("MTXPayload.author            = ""<enter the payload author>""")
+	out.push("MTXPayload.options[""STRING""] = {""required"": 1, ""default"": ""world"", ""description"": ""The string after hello""}")
 	out.push("")
+	out.push("// This is the run() function that run post exploitation")
+	out.push("// remote_object: The object that return after post exploitation <shell|computer|file>")
+	out.push("// local_shell:   Your computer get_shell object")
+	out.push("// options:       Options setted with ""set <option> <value>"" command")
 	out.push("MTXPayload.run = function(remote_object, local_shell, options)")
-	out.push("		if typeof(remote_object) != ""shell"" then return print_error(""Payload works with shell sessions only"")")
-	out.push("		old_sessions = metaxploit.rshell_server")
-	out.push("		metaxploit_path = current_path + ""/metaxploit.so""")
-	out.push("		if not local_shell.host_computer.File(metaxploit_path) then")
-	out.push("		metaxploit_path = ""/lib/metaxploit.so""")
-	out.push("		end if")
-	out.push("		rev_shell_code = ""include_lib(current_path + """"/metaxploit.so"""").rshell_client(""""""+options.LHOST+"""""", ""+options.LPORT.to_int+"", """"ps"""")""")
-	out.push("		print_info(""Wrtite reverse shell code"")")
-	out.push("		local_shell.host_computer.touch(""/home/guest"", ""rev_shell.src"")")
-	out.push("		local_shell.host_computer.File(""/home/guest/rev_shell.src"").set_content(rev_shell_code)")
-	out.push("		print_info(""Build reverse shell"")")
-	out.push("		local_shell.build(""/home/guest/rev_shell.src"", ""/home/guest"")")
-	out.push("		print_info(""Upload metaxploit library to victim"")")
-	out.push("		local_shell.scp(metaxploit_path, ""/home/guest"", remote_object)")
-	out.push("		print_info(""Upload reverse shell binary to victim"")")
-	out.push("		local_shell.scp(""/home/guest/rev_shell"", ""/home/guest"", remote_object)")
-	out.push("		print_info(""Launch reverse shell binary on victim"")")
-	out.push("		remote_object.launch(""/home/guest/rev_shell"")")
-	out.push("		return print_good(""Reverse shell ready!"")")
+	out.push("		object_type = typeof(remote_object)")
+	out.push("		if object_type != ""shell"" then return print_error(""This payload works with shell sessions only"")")
+	out.push("		print_good(""Hello "" + options[""STRING""] + "" i'm a remote shell and my ip is: "" + remote_object.host_computer.public_ip)")
 	out.push("end function")
-	out.push("")
 	return out.join(char(10))
 end function
 
@@ -974,7 +966,7 @@ end function
 
 globals.mtx.set = function(params, is_g = false)
 	if not is_g and globals.mtx.exploit == null then
-		return print_error("No module charged")
+		return print_error("No exploit module charged")
 	end if
 
 	if params.len != 2 then
@@ -1699,7 +1691,7 @@ globals.mtx["new"] = function(params)
 	if params[0] == "payload" then 
 		payload_example_path = "/usr/share/mtx/payloads/" + "payload_" + file_name +  ".src"
 		write_file(globals.localsession, payload_example_path, get_payload_example)
-		print_info("New exploit example created -> " + payload_example_path)
+		print_info("New payload example created -> " + payload_example_path)
 		return
 	end if
 end function

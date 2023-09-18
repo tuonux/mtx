@@ -7,6 +7,7 @@
 - New command "new payload" for mtx that allow you to generate a payload example
 - Payloads counter in the main screen
 - The "custom" folder now it's automatically created under /usr/share/mtx/exploits/custom path
+- Improve for the "new exploit" mtx commands
 - Fix sessions logic and conficlits with rshell_server and exploit sessions
 - Fix exit function in metexpreter don't close the sessions correctly
 

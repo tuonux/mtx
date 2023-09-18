@@ -436,9 +436,53 @@ It's a good pratice store your exploits under "custom" directory like example:
 
 After created a custom exploit, you need to use "reload" command if you have mtx running.
 
+Click to see a tutorial about exploit writing for MTX Framework
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/KoSjqsYChvE/0.jpg)](http://www.youtube.com/watch?v=KoSjqsYChvE "GREY HACK - MTX FRAMEWORK: WRITE YOUR FIRST EXPLOIT")
+
+## Post exploitation: Payloads!
+
+After that an exploit works successfully, we want to perform custom actions on it, maybe we want to download a file or if our mission need to make machine unreachable, we want to do it automatically.
+
+Payloads make your post exploitation life easy!
+
+This is an exploit example
+
+#### The magic of the <b>get_custom_object.MTXPayload</b>:
+
+This object is the core of the entire framework and payloads comunication!
+
+```
+// This module requires MTX Framework:     https://github.com/tuonux/mtx
+// Current source:              		   https://github.com/tuonux/mtx
+
+MTXPayload                   = get_custom_object.MTXPayload
+MTXPayload.name              = "<enter the payload name>"
+MTXPayload.description       = "<enter the payload description>"
+MTXPayload.author            = "<enter the payload author>"
+MTXPayload.options["STRING"] = {"required": 1, "default": "world", "description": "The string after hello"}
+
+// This is the run() function that run post exploitation
+// remote_object: The object that return after post exploitation <shell|computer|file>
+// local_shell:   Your computer get_shell object
+// options:       Options setted with "set <option> <value>" command
+MTXPayload.run = function(remote_object, local_shell, options)
+    object_type = typeof(remote_object)
+	if object_type != "shell" then return print_error("This payload works with shell sessions only")
+    print_good("Hello " + options["STRING"] + " i'm a remote shell and my ip is: " + remote_object.host_computer.public_ip)
+end function
+
+```
+
+You can store your proxy under:
+
+    /usr/share/mtx/payloads/<my_payload_name>.src
+
+After created a custom payload, you need to use "reload" command if you have mtx running.
+
 ### Just keep in mind:
 
-There are several function that you can use in your exploit code that extends MTX Framework.
+There are several function that you can use in your exploit or payloads code that extends MTX Framework.
 
     metaxploit                               The metaxploit class is alredy included. You don't need to include again.
     crypto                                   The crypto class is alredy included. You don't need to include again.
@@ -451,13 +495,9 @@ There are several function that you can use in your exploit code that extends MT
 
     MTXExploit.check                         Needs to return <true|false>
 
-Click to see a tutorial about exploit writing for MTX Framework
-
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/KoSjqsYChvE/0.jpg)](http://www.youtube.com/watch?v=KoSjqsYChvE "GREY HACK - MTX FRAMEWORK: WRITE YOUR FIRST EXPLOIT")
-
 ## Next Goals
 
-- Possibility to charge payloads too in order to permit post-exploitations commands
+- <b>DONE✅</b> Possibility to charge payloads too in order to permit post-exploitations commands</b>
 
 ## Contributing
 
