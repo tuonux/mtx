@@ -978,7 +978,7 @@ globals.mtx.set = function(params, is_g = false)
 		return print_error(params[0].upper + " => Option not valid for this module")
 	end if
 
-	if globals.mtx.exploit.type == "shell" and params[0].upper == "PAYLOAD" then
+	if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and params[0].upper == "PAYLOAD" then
 		payload_name = params[1].trim
 		globals.mtx.payload = null
 		for raw_payload in globals.mtx.payloads
@@ -1074,7 +1074,7 @@ globals.mtx.use = function(params)
 	globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
 
 	
-	if globals.mtx.exploit.type == "shell" then 
+	if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null then 
 		get_custom_object.MTXExploit.options["PAYLOAD"] = {}
 		get_custom_object.MTXExploit.options["PAYLOAD"].selection    = ""
 		get_custom_object.MTXExploit.options["PAYLOAD"].default      = ""
@@ -1127,7 +1127,7 @@ globals.mtx.run = function(params)
 	get_custom_object.MTXExploit.run(options)
 
 	if globals.sessions.len > old_n_sessions then
-		if globals.mtx.exploit.type == "shell" and options["PAYLOAD"] != "" then 
+		if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and options["PAYLOAD"] != "" then 
 			get_custom_object.MTXPayload.run(globals.session.shell, globals.localsession.shell, options)
 		end if
 		globals.metexpreter.start
