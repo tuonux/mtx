@@ -1,5 +1,10 @@
 ## MTX Framework changelog
 
+### 1.1.1
+
+    - fix rshell sessions if rshell not installed on local machine
+    - improve file deletetion logic
+
 ### 1.1.0
 
 - Possibility to create and load custom payloads that make post exploitation easy and funny!
