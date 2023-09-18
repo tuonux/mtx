@@ -1,7 +1,7 @@
 // # MTX Framework
 // Author: tuonux <tuonux0@gmail.com>
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
-VERSION = "1.0.4"
+VERSION = "1.1.0"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
 metaxploit = include_lib(metaxploit_path)
@@ -121,6 +121,7 @@ end function
 
 parse_print = function(str, prefix = "", color = "info")
 	symbol = ""
+	if typeof(str) != "string" then str = str + ""
 	str = str.replace("\n", char(10))
 
 	if prefix + "" != "" then
@@ -284,6 +285,43 @@ get_exploit_example = function()
 
 	out.push("end function")
 
+	out.push("")
+	return out.join(char(10))
+end function
+
+get_payload_example = function()
+	out = []
+	out.push("// This module requires MTX Framework:   https://github.com/tuonux/mtx")
+	out.push("// Current source:                       https://github.com/tuonux/mtx")
+	out.push("")
+	out.push("MTXPayload                  = get_custom_object.MTXPayload")
+	out.push("MTXPayload.name             = ""Reverse shell""")
+	out.push("MTXPayload.description      = ""Build a reverse shell and execute it on victim""")
+	out.push("MTXPayload.author           = ""tuonux""")
+	out.push("MTXPayload.options[""LHOST""] = {""required"": 1, ""default"": ""127.0.0.1"", ""description"": ""Local IP""}")
+	out.push("MTXPayload.options[""LPORT""] = {""required"": 1, ""default"": ""1222"", ""description"": ""Local port""}")
+	out.push("")
+	out.push("MTXPayload.run = function(remote_object, local_shell, options)")
+	out.push("		if typeof(remote_object) != ""shell"" then return print_error(""Payload works with shell sessions only"")")
+	out.push("		old_sessions = metaxploit.rshell_server")
+	out.push("		metaxploit_path = current_path + ""/metaxploit.so""")
+	out.push("		if not local_shell.host_computer.File(metaxploit_path) then")
+	out.push("		metaxploit_path = ""/lib/metaxploit.so""")
+	out.push("		end if")
+	out.push("		rev_shell_code = ""include_lib(current_path + """"/metaxploit.so"""").rshell_client(""""""+options.LHOST+"""""", ""+options.LPORT.to_int+"", """"ps"""")""")
+	out.push("		print_info(""Wrtite reverse shell code"")")
+	out.push("		local_shell.host_computer.touch(""/home/guest"", ""rev_shell.src"")")
+	out.push("		local_shell.host_computer.File(""/home/guest/rev_shell.src"").set_content(rev_shell_code)")
+	out.push("		print_info(""Build reverse shell"")")
+	out.push("		local_shell.build(""/home/guest/rev_shell.src"", ""/home/guest"")")
+	out.push("		print_info(""Upload metaxploit library to victim"")")
+	out.push("		local_shell.scp(metaxploit_path, ""/home/guest"", remote_object)")
+	out.push("		print_info(""Upload reverse shell binary to victim"")")
+	out.push("		local_shell.scp(""/home/guest/rev_shell"", ""/home/guest"", remote_object)")
+	out.push("		print_info(""Launch reverse shell binary on victim"")")
+	out.push("		remote_object.launch(""/home/guest/rev_shell"")")
+	out.push("		return print_good(""Reverse shell ready!"")")
+	out.push("end function")
 	out.push("")
 	return out.join(char(10))
 end function
@@ -591,61 +629,85 @@ get_user = function(computer = null, force_user = false)
 end function
 
 register_session = function(result, public_ip = "", quiet = false, subtype = "")
-	if ["shell", "file", "computer"].indexOf(typeof(result)) == null then
-		return 
-	end if
 
-	user_info = get_user(result)
-	computer = result
-
-	if typeof(result) == "shell" then
-		computer = result.host_computer
-	end if
-
-	public_ip = ""
-	local_ip = ""
-
-	if typeof(result) != "file" then
-		public_ip = computer.public_ip
-		local_ip = computer.local_ip
-	end if
-
-	tunnel = ""
-	description = ""
-
-	if globals.sessions.len > 0 then
-		tunnel = public_ip + " -> " + get_shell.host_computer.public_ip
-
-		if subtype == "" then
-			subtype = typeof(result)
+	add_session = function(result, public_ip = "", quiet = false, subtype = "")
+		if ["shell", "file", "computer"].indexOf(typeof(result)) == null then
+			return 
 		end if
 
-		description = subtype
+		computer = result
+
+		if typeof(result) == "shell" then
+			computer = result.host_computer
+		end if
+
+		user_info = get_user(result)
+			
+		if globals.sessions.len == 0 then 
+			user_info.path = current_path
+			user_info.name = active_user
+		end if
+
+		public_ip = ""
+		local_ip = ""
+
+		if typeof(result) != "file" then
+			public_ip = computer.public_ip
+			local_ip = computer.local_ip
+		end if
+
+		tunnel = public_ip + " -> " + get_shell.host_computer.public_ip
+
+		pwd = user_info.path
+
+		pwd = user_info.path
+
+		if globals.sessions.len == 0 then 
+			pwd = program_path.split("/")[0:-1].join("/")
+		end if
+
+		if subtype == "" then subtype = typeof(result)
+
+		new_session = {"name": "", "tunnel": tunnel, "information": subtype + "/" + user_info.name, "shell": result, "computer": computer, "user": user_info.name, "homedir": user_info.path, "pwd": pwd, "public_ip": public_ip, "local_ip": local_ip, "type": typeof(result)}
+		
+		globals.sessions.push(new_session)
+
+		globals.session = new_session
+
+		if globals.sessions.len == 1 then
+			return 
+		end if
+
+		if quiet == true then
+			return 
+		end if
+
+		return print_good("Command " + typeof(result) + " session " + (globals.sessions.len - 1) + " opened (" + tunnel + ") at " + current_date)
+
+	end function
+
+	add_rshell_sessions = function
+		for shell in metaxploit.rshell_server
+			found = 0
+			for session in globals.sessions
+				if hash([session.public_ip, session.local_ip]) == hash([shell.host_computer.public_ip, shell.host_computer.local_ip]) then 
+					found = 1
+					break
+				end if
+			end for			
+			if found then continue
+			add_session(shell, "", true, "Rshell")
+		end for
+	end function
+
+	if globals.sessions.len == 0 then
+		add_session(result)
+		add_rshell_sessions
+	else 
+		add_rshell_sessions
+		add_session(result)
 	end if
 
-	pwd = user_info.path
-
-	if globals.sessions.len == 0 then 
-		pwd = program_path.split("/")[0:-1].join("/")
-	end if
-
-	new_session = {"name": "", "description": description, "tunnel": tunnel, "information": typeof(result) + "/" + user_info.name, "shell": result, "computer": computer, "user": user_info.name, "homedir": user_info.path, "pwd": pwd, "public_ip": public_ip, "local_ip": local_ip, "type": typeof(result)}
-
-	if globals.sessions.indexOf(new_session) != null then
-		return print_error("Session already opened")
-	end if
-
-	globals.sessions.push(new_session)
-
-	if globals.sessions.len == 1 then
-		return 
-	end if
-
-	if quiet == true then
-		return 
-	end if
-
-	return print_good("Command " + typeof(result) + " session " + (globals.sessions.len - 1) + " opened (" + tunnel + ") at " + current_date)
 end function
 
 make_table = function(arr, name, columns, search)
@@ -729,10 +791,6 @@ globals.mtx.config = {}
 globals.mtx.start = function()
 	meta_banner
 
-	for shell in metaxploit.rshell_server
-		register_session(shell, "", true, "Rshell")
-	end for
-
 	globals.mtx.reload([], true)
 	counts = []
 	print("\n+ -- -=[ " + " ".pad(5) + " " + ("exploits: ".pad(15) + " " + globals.mtx.exploits_total_count + "").pad(20) + "      ]=- -- +")
@@ -741,6 +799,8 @@ globals.mtx.start = function()
 		counts.push(count.key + "s: " + count.value)
 		print("+ -- -=[ " + " ".pad(5) + " " + ((count.key + "s: ").pad(15) + " " + count.value).pad(20) + "      ]=- -- +")
 	end for
+
+	print("+ -- -=[ " + " ".pad(5) + " " + (("payloads: ").pad(15) + " " + globals.mtx.payloads.len).pad(20) + "      ]=- -- +")
 
 	ln
 
@@ -823,15 +883,20 @@ end function
 
 globals.mtx.reload = function(params = [], first_loading = false)
 	globals.mtx.exploits = []
+	globals.mtx.payloads = []
 	globals.mtx.exploits_count = {}
 	globals.mtx.exploits_total_count = 0
 	globals.mtx.exploit = null
+	globals.mtx.payload = null
 	get_custom_object.MTXExploit = {}
 	get_custom_object.MTXExploit.options = {}
+	get_custom_object.MTXPayload = {}
+	get_custom_object.MTXPayload.options = {}
 	globals.localsession.computer.create_folder("/usr", "share")
 	globals.localsession.computer.create_folder("/usr/share", "mtx")
 	globals.localsession.computer.create_folder("/usr/share/mtx", "exploits")
-	globals.mtx._exploits_contents = []
+	globals.localsession.computer.create_folder("/usr/share/mtx/exploits", "custom")
+	globals.localsession.computer.create_folder("/usr/share/mtx", "payloads")
 
 	scan_exploits_dir = function(path, forcepath = false)
 		current_file = globals.localsession.computer.File(path)
@@ -843,7 +908,6 @@ globals.mtx.reload = function(params = [], first_loading = false)
 				end for
 				return 
 			end if
-
 		end if
 
 		current_content = current_file.get_content
@@ -873,10 +937,30 @@ globals.mtx.reload = function(params = [], first_loading = false)
 		globals.mtx.exploits.push(exploit)
 	end function
 
+	scan_payloads_dir = function(path, forcepath = false)
+		current_file = globals.localsession.computer.File(path)
+		for payload_file in current_file.get_files
+			current_content = payload_file.get_content
+			if current_content == "" then return
+			current_content = current_content.replace("""", "")
+			payload = {}
+			payload.id = "payload/" + payload_file.path.split("payloads/")[1].replace(".src", "")
+			payload.file = payload_file
+			for index in ["name", "description", "author"]
+				if not payload.hasIndex(index) then
+					payload[index] = "-----"
+				end if
+				payload[index] = (current_content.split("MTXPayload." + index)[1].split("\n")[0].split("=")[1]).trim
+			end for
+			globals.mtx.payloads.push(payload)
+		end for
+	end function
+
 	scan_exploits_dir("/usr/share/mtx/exploits")
+	scan_payloads_dir("/usr/share/mtx/payloads")
 
 	if not first_loading then
-		print_good("Exploits list reloaded")
+		print_good("Exploits and Payloads list reloaded")
 	end if
 
 end function
@@ -900,6 +984,31 @@ globals.mtx.set = function(params, is_g = false)
 	if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
 		if is_g then return
 		return print_error(params[0].upper + " => Option not valid for this module")
+	end if
+
+	if globals.mtx.exploit.type == "shell" and params[0].upper == "PAYLOAD" then
+		payload_name = params[1].trim
+		globals.mtx.payload = null
+		for raw_payload in globals.mtx.payloads
+			if raw_payload.id == payload_name or (payload_name.to_int == (globals.mtx.payloads.indexOf(raw_payload)+1) ) then
+				globals.mtx.payload = raw_payload
+				params[1] = globals.mtx.payload.id
+				globals.localsession.shell.build(globals.mtx.payload.file.path, "/home/guest")
+				globals.localsession.shell.launch("/home/guest/" + globals.mtx.payload.file.path.split("/")[-1].replace(".src", ""))
+				get_custom_object.MTXExploit.options = get_custom_object.MTXExploit.options + get_custom_object.MTXPayload.options
+				for i in get_custom_object.MTXPayload.options.indexes
+					get_custom_object.MTXExploit.options[i].selection = get_custom_object.MTXPayload.options[i].default
+					if globals.mtx.config.hasIndex(i) then
+						get_custom_object.MTXExploit.options[i].selection = globals.mtx.config[i]
+					end if
+				end for
+				break
+			end if
+		end for
+	
+		if not globals.mtx.payload then
+			return print_error("Error: payload module not found")
+		end if
 	end if
 
 	get_custom_object.MTXExploit.options[params[0].upper].selection = params[1]
@@ -966,8 +1075,20 @@ globals.mtx.use = function(params)
 	get_custom_object.MTXExploit = {}
 	get_custom_object.MTXExploit.options = {}
 
+	get_custom_object.MTXPayload = {}
+	get_custom_object.MTXPayload.options = {}
+
 	globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
 	globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
+
+	
+	if globals.mtx.exploit.type == "shell" then 
+		get_custom_object.MTXExploit.options["PAYLOAD"] = {}
+		get_custom_object.MTXExploit.options["PAYLOAD"].selection    = ""
+		get_custom_object.MTXExploit.options["PAYLOAD"].default      = ""
+		get_custom_object.MTXExploit.options["PAYLOAD"].required     = 0
+		get_custom_object.MTXExploit.options["PAYLOAD"].description  = "Payload to execute after the exploit"
+	end if
 
 	for i in get_custom_object.MTXExploit.options.indexes
 		get_custom_object.MTXExploit.options[i].selection = get_custom_object.MTXExploit.options[i].default
@@ -978,6 +1099,7 @@ globals.mtx.use = function(params)
 	end for
 
 	print_good("Module " + globals.mtx.exploit.id + " charged")
+
 end function
 
 globals.mtx.check = function(params)
@@ -1013,19 +1135,25 @@ globals.mtx.run = function(params)
 	get_custom_object.MTXExploit.run(options)
 
 	if globals.sessions.len > old_n_sessions then
-		globals.session = globals.sessions[-1]
+		if globals.mtx.exploit.type == "shell" and options["PAYLOAD"] != "" then 
+			get_custom_object.MTXPayload.run(globals.session.shell, globals.localsession.shell, options)
+		end if
 		globals.metexpreter.start
 	end if
 
 end function
 
 globals.mtx.show = function(params)
-	if params.len == 0 or ["exploits", "options", "info"].indexOf(params[0]) == null then
+	if params.len == 0 or ["exploits", "options", "info", "payloads"].indexOf(params[0]) == null then
 		return print("Usage: show <exploits|options|info>")
 	end if
 
 	if params[0] == "exploits" then
 		return make_table(globals.mtx.exploits, "Exploits", {"id": {"label": "name", "uf": false}, "disclosure_date": {"label": "Disclosure Date"}, "rank": {"label": "Rank"}, "name": {"label": "Description"}})
+	end if
+
+	if params[0] == "payloads" then
+		return make_table(globals.mtx.payloads, "Payloads", {"id": {"label": "name", "uf": false}, "description": {"label": "Description", "uf": false}, "author": {"label": "Author", "uf": false}})
 	end if
 
 	if params[0] == "options" then
@@ -1135,7 +1263,7 @@ globals.mtx.sessions = function(params)
 			return print_error("No active sessions")
 		end if
 
-		make_table(globals.sessions[1 : ], "Active sessions", {"name": {"label": "Name"}, "information": {"label": "Information"}, "description": {"label": "Type"}, "tunnel": {"label": "Connection"}})
+		make_table(globals.sessions[1 : ], "Active sessions", {"name": {"label": "Name"}, "information": {"label": "Information"}, "public_ip": {"label": "Public ip"}, "local_ip": {"label": "Lan ip"}})
 
 	end if
 
@@ -1560,11 +1688,18 @@ globals.mtx.cd = function(params)
 end function
 
 globals.mtx["new"] = function(params)
-	if params.len < 1 then return print("Usage: new <explpoit|backdoor>")
+	if params.len < 1 then return print("Usage: new <explpoit|payload>")
+	file_name = md5(current_date)[0:6]
 	if params[0] == "exploit" then 
-		exploit_example_path = globals.localsession.pwd + "/" + "exploit_" + current_date.split(" ")[0].replace("/", "_") + ".src"
+		exploit_example_path = "/usr/share/mtx/exploits/custom/" + "exploit_" + file_name + ".src"
 		write_file(globals.localsession, exploit_example_path, get_exploit_example)
 		print_info("New exploit example created -> " + exploit_example_path)
+		return
+	end if
+	if params[0] == "payload" then 
+		payload_example_path = "/usr/share/mtx/payloads/" + "payload_" + file_name +  ".src"
+		write_file(globals.localsession, payload_example_path, get_payload_example)
+		print_info("New exploit example created -> " + payload_example_path)
 		return
 	end if
 end function
@@ -1675,9 +1810,11 @@ end function
 
 globals.metexpreter.exit = function(params = [])
 	arr = []
-
+	session_now   = [globals.localsession.local_ip, globals.localsession.public_ip, globals.localsession.type, globals.localsession.description, globals.localsession.user]
+	local_session = [globals.session.local_ip, globals.session.public_ip, globals.session.type, globals.session.description, globals.session.user]
 	for session in globals.sessions
-		if hash(session) == hash(globals.localsession) or hash(session) == hash(globals.session) then
+		session_old = [session.local_ip, session.public_ip, session.type, session.description, session.user]
+		if hash(session_now) == hash(session_old) then
 			continue
 		end if
 		arr.push(session)
