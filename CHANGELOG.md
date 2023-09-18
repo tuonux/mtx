@@ -1,8 +1,13 @@
 ## MTX Framework changelog
 
+### 1.0.4
+
+- new command "netscan" for mtx and metexpreter that allow you to see fast info about the network
+- nmap command now get informations about the target gateway under lan too
+
 ### 1.0.3
 
-- "new command install \<ssh|http|ftp|chat|repository|sql|smtp\>" that allow you to install a service on the victim machine
+- "new command "install \<ssh|http|ftp|chat|repository|sql|smtp\>" for metexpreter that allow you to install a service on the victim machine
 
 ### 1.0.2
 
