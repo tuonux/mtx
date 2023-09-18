@@ -1895,11 +1895,10 @@ end function
 
 globals.metexpreter.exit = function(params = [])
 	arr = []
-	session_now = [globals.localsession.local_ip, globals.localsession.public_ip, globals.localsession.type, globals.localsession.description, globals.localsession.user]
-	local_session = [globals.session.local_ip, globals.session.public_ip, globals.session.type, globals.session.description, globals.session.user]
+	session_now = [globals.session.local_ip, globals.session.public_ip, globals.session.type, globals.session.user]
 
 	for session in globals.sessions
-		session_old = [session.local_ip, session.public_ip, session.type, session.description, session.user]
+		session_old = [session.local_ip, session.public_ip, session.type, session.user]
 
 		if hash(session_now) == hash(session_old) then
 			continue
