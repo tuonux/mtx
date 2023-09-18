@@ -3,7 +3,7 @@
 
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
 metaxploit = include_lib(metaxploit_path)
