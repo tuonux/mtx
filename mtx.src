@@ -709,11 +709,21 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
 	end function
 
 	add_rshell_sessions = function()
-		for shell in metaxploit.rshell_server
-			found = 0
 
+		metaxploit_server = metaxploit.rshell_server
+
+		if typeof(metaxploit_server) == "string" then return
+
+		for shell in metaxploit_server
+			found = 0
+			public_ip = ""
+			local_ip  = ""
+			if shell.hasIndex("host_computer") then 
+				public_ip = shell.host_computer.public_ip
+				local_ip  = shell.host_computer.local_ip
+			end if
 			for session in globals.sessions
-				if hash([session.public_ip, session.local_ip]) == hash([shell.host_computer.public_ip, shell.host_computer.local_ip]) then
+				if hash([session.public_ip, session.local_ip]) == hash([public_ip, local_ip]) then
 					found = 1
 					break
 				end if
@@ -1999,13 +2009,15 @@ globals.metexpreter.del = function(params)
 		return print("Usage: del <file path>")
 	end if
 
-	file_to_delete = get_file(globals.session.shell, params[0], true)
+	file_to_delete = get_directory(globals.session.shell, params[0], true)
 
-	if typeof(file_to_delete) == "string" then
-		return print_error(file_to_delete)
+	if not file_to_delete or typeof(file_to_delete) == "string" then 
+		file_to_delete = get_file(globals.session.shell, params[0], true)
+		if not file_to_delete or file_to_delete == "string" then return print_error(params[0] + " -> unable to delete")
 	end if
 
-	file_to_delete.delete
+	del = file_to_delete.remove
+	if not del or typeof(del) == "string" then return print_error(del)
 	print_good("" + file_to_delete.path + " -> Deleted")
 end function
 
