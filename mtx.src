@@ -1,7 +1,7 @@
 // # MTX Framework
 // Author: tuonux <tuonux0@gmail.com>
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
-VERSION = "1.0.3"
+VERSION = "1.0.4"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
 metaxploit = include_lib(metaxploit_path)
@@ -139,7 +139,7 @@ parse_print = function(str, prefix = "", color = "info")
 		symbol = "+"
 	end if
 
-	color = color.replace("error", "#a61b1d")
+	color = color.replace("error", "#FF3A3A")
 	color = color.replace("good", "#6eb0aa")
 	color = color.replace("info", "#426fa8")
 
@@ -796,7 +796,7 @@ globals.mtx.start = function()
 		if globals.mtx.exploit then
 			firts_part = globals.mtx.exploit.id.split("/")[0]
 			second_part = globals.mtx.exploit.id.split("/")[1 : ].join("/")
-			exploit_path = " " + firts_part + "(<color=red>" + second_part + ")</color>"
+			exploit_path = " " + firts_part + "(<color=#FF3A3A>" + second_part + ")</color>"
 		end if
 
 		command = user_input(("mtx" + exploit_path) + " > ").trim
@@ -1071,7 +1071,7 @@ globals.mtx.show = function(params)
 		end if
 
 		print("Exploit info")
-		print("============")
+		print("------------")
 
 		out = []
 		out.push(" Path " + exploit_found.file.path.clean)
@@ -1086,8 +1086,8 @@ globals.mtx.show = function(params)
 		print(format_columns(out.join("\n")))
 		ln
 		print("Description")
-		print("===========")
-		print( exploit_found.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n===========\n"))
+		print("-----------")
+		print( exploit_found.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n------------\n"))
 
 
 	end if
@@ -1393,6 +1393,15 @@ globals.mtx.nmap = function(params)
 	if is_router then
 		local_ip = is_router.local_ip
 		kernel_version = is_router.kernel_version
+	else
+		subnet = ip_address.split(".")[0:-1].join(".")
+		is_router = null
+		for i in range(1,255) 
+			is_router = get_router(subnet + "." + i)
+			if is_router then break
+		end for
+		local_ip = is_router.local_ip
+		kernel_version = is_router.kernel_version
 	end if
 
 	if is_router then
@@ -1402,12 +1411,13 @@ globals.mtx.nmap = function(params)
 			type = "Switch"
 		end if
 
+		print_info("Gateway type:" + " " + type, "Nmap")
 		print_info(type + " IP:" + " " + local_ip, "Nmap")
 		print_info(type + " version:" + " " + kernel_version, "Nmap")
 
 		if is_router.firewall_rules.len != 0 then
 			print_info("Firewall rules:", "Nmap")
-			print_info("- " + is_router.firewall_rules.join("\n- "), "Nmap")
+			print_info("  " + is_router.firewall_rules.join("\n  "), "Nmap")
 		else
 			print_good("No firewall rules", "Nmap")
 		end if
@@ -1559,9 +1569,37 @@ globals.mtx["new"] = function(params)
 	end if
 end function
 
+globals.mtx.netscan = function(params)
+	ns_code = []
+	ns_code.push("router = get_router")
+	ns_code.push("out = []")
+	ns_code.push("out.push([""Device IP"".replace("" "", char(160)) ,""Gateway"", ""Gateway type"".replace("" "", char(160)), ""Bssid"", ""Essid"", ""Firewall"", ""Ping status"".replace("" "", char(160))].join("" ""))")
+	ns_code.push("out.push([""---------"", ""-------"", ""------------"", ""-----"", ""-----"", ""--------"", ""-----------""].join("" ""))")
+	ns_code.push("for ip in router.devices_lan_ip")
+	ns_code.push("sub_router = get_router(ip)")
+	ns_code.push("is_switch  = get_switch(ip)")
+	ns_code.push("if not sub_router then continue	")
+	ns_code.push("gateway_type = ""Device""")
+	ns_code.push("if not is_switch then gateway_type = ""Router""")
+	ns_code.push("if is_switch then gateway_type = ""Switch""")
+	ns_code.push("for sub_device in sub_router.devices_lan_ip")
+	ns_code.push("if sub_router.local_ip == sub_device or sub_device.indexOf(sub_router.local_ip.split(""."")[0:-1].join(""."")) == null then continue")
+	ns_code.push("type = ""successful""")
+	ns_code.push("if is_switch then type = ""<color=#FF3A3A>unreachable</color>""")
+	ns_code.push("if sub_router.firewall_rules.len > 0 and sub_router.firewall_rules.indexOf(""DENY Any Any Any"") != null then fw = ""enabled"" else fw = ""disabled""")
+	ns_code.push("out.push([sub_device, sub_router.local_ip, (gateway_type + "" "" + sub_router.kernel_version).replace("" "", char(160)), sub_router.bssid_name, sub_router.essid_name, fw, type].join("" ""))")
+	ns_code.push("end for")
+	ns_code.push("end for")
+	ns_code.push("print(format_columns(out.join(""\n"")))")
+	ns_code = ns_code.join("\n")
+	write_file(globals.session, "/home/guest/netscan.src", ns_code)
+	globals.session.shell.build("/home/guest/netscan.src", "/home/guest")
+	globals.session.shell.launch("/home/guest/netscan")
+end function
+
 globals.mtx.help = function(params)
 	print("Core Commands")
-	print("=============")
+	print("-------------")
 	ln
 	print("   Command      Description")
 	print("   -------      -----------")
@@ -1654,7 +1692,7 @@ globals.metexpreter.quit = @globals.metexpreter.exit
 
 globals.metexpreter.help = function(params)
 	print("Core Commands")
-	print("=============")
+	print("-------------")
 	ln
 	print("   Command      Description")
 	print("   ?            Help menu")
@@ -2270,6 +2308,8 @@ globals.metexpreter.install = function(params)
 	globals.session.shell.launch("/home/guest/install_" + service)
 	print_good("Service " + service + " installation complete!")
 end function
+
+globals.metexpreter.netscan = @globals.mtx.netscan
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
