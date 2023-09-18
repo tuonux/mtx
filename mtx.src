@@ -1,6 +1,8 @@
 // # MTX Framework
 // Author: tuonux <tuonux0@gmail.com>
+
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
+
 VERSION = "1.1.0"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
@@ -28,13 +30,13 @@ if not crypto then
 end if
 
 meta_banner = function()
-print("           _           __                                             _")
-print("          | |         / _|                                           | |")
-print(" _ __ ___ | |___  __ | |_ _ __ __ _ _ __ ___   _____      _____  _ __| | __")
-print("| '_ ` _ \| __\ \/ / |  _| '__/ _` | '_ ` _ \ / _ \ \ /\ / / _ \| '__| |/ /")
-print("| | | | | | |_ >  <  | | | | | (_| | | | | | |  __/\ V  V / (_) | |  |   <")
-print("|_| |_| |_|\__/_/\_\ |_| |_|  \__,_|_| |_| |_|\___| \_/\_/ \___/|_|  |_|\_\")
-print("\nVersion " + VERSION + " | made by tuonux ( https://github.com/tuonux/mtx )")
+	print("           _           __                                             _")
+	print("          | |         / _|                                           | |")
+	print(" _ __ ___ | |___  __ | |_ _ __ __ _ _ __ ___   _____      _____  _ __| | __")
+	print("| '_ ` _ \| __\ \/ / |  _| '__/ _` | '_ ` _ \ / _ \ \ /\ / / _ \| '__| |/ /")
+	print("| | | | | | |_ >  <  | | | | | (_| | | | | | |  __/\ V  V / (_) | |  |   <")
+	print("|_| |_| |_|\__/_/\_\ |_| |_|  \__,_|_| |_| |_|\___| \_/\_/ \___/|_|  |_|\_\")
+	print("\nVersion " + VERSION + " | made by tuonux ( https://github.com/tuonux/mtx )")
 end function
 
 exec_params = params
@@ -121,7 +123,10 @@ end function
 
 parse_print = function(str, prefix = "", color = "info")
 	symbol = ""
-	if typeof(str) != "string" then str = str + ""
+	
+	if typeof(str) != "string" then
+		str = str + ""
+	end if
 	str = str.replace("\n", char(10))
 
 	if prefix + "" != "" then
@@ -233,8 +238,10 @@ get_exploit_example = function()
 	out.push("")
 
 	out.push("// Every exploit need a check funtion in order to declare if the target is vulnerable or not")
+
 	out.push("// Mabybe a check on the library and the library version can help!")
 	out.push("// The options Map contains the value of the options set by the user.")
+
 	out.push("MTXExploit.check = function(options)")
 
 	out.push("		target          = options.RHOST")
@@ -260,8 +267,10 @@ get_exploit_example = function()
 	out.push("")
 
 	out.push("// This is the run() function to see your exploit in action and perform overflows and other commands that you need!")
+
 	out.push("// The register_session(overflow_result) make a new sessions registered to the MTX Framework")
 	out.push("// The options Map contains the value of the options set by the user.")
+
 	out.push("MTXExploit.run = function(options)")
 
 	out.push("		target          = options.RHOST")
@@ -306,15 +315,23 @@ get_payload_example = function()
 	out.push("MTXPayload.author            = ""<enter the payload author>""")
 	out.push("MTXPayload.options[""STRING""] = {""required"": 1, ""default"": ""world"", ""description"": ""The string after hello""}")
 	out.push("")
+
 	out.push("// This is the run() function that run post exploitation")
+
 	out.push("// remote_object: The object that return after post exploitation <shell|computer|file>")
 	out.push("// local_shell:   Your computer get_shell object")
 	out.push("// options:       Options setted with ""set <option> <value>"" command")
+
 	out.push("MTXPayload.run = function(remote_object, local_shell, options)")
+
 	out.push("		object_type = typeof(remote_object)")
+
 	out.push("		if object_type != ""shell"" then return print_error(""This payload works with shell sessions only"")")
+
 	out.push("		print_good(""Hello "" + options[""STRING""] + "" i'm a remote shell and my ip is: "" + remote_object.host_computer.public_ip)")
+
 	out.push("end function")
+
 	return out.join(char(10))
 end function
 
@@ -407,16 +424,31 @@ write_exploit = function(exploit)
 	end if
 
 	port = "0"
-	if exploit.library == "libssh.so" then port = "22"
-	if exploit.library == "libhttp.so" then port = "80"
-	if exploit.library == "libftp.so" then port = "22"
-	if exploit.library == "kernel_router.so" then port = "0"
-	if exploit.library == "libsql.so" then port = "3306"
-	if exploit.library == "libsmtp.so" then port = "25"
-
+	
+	if exploit.library == "libssh.so" then
+		port = "22"
+	end if
+	
+	if exploit.library == "libhttp.so" then
+		port = "80"
+	end if
+	
+	if exploit.library == "libftp.so" then
+		port = "22"
+	end if
+	
+	if exploit.library == "kernel_router.so" then
+		port = "0"
+	end if
+	
+	if exploit.library == "libsql.so" then
+		port = "3306"
+	end if
+	
+	if exploit.library == "libsmtp.so" then
+		port = "25"
+	end if
 	exploit_content = exploit_content.replace("[port]", port)
-
-
 	exploit_content = exploit_content.replace("[argument_drescription]", argument_description)
 	// RICORDATI DI CAMBIARE LA DESCRIZIONE PER I TIPI NUMBER E LAN_SWITCH
 	exploit_content = exploit_content.replace("[description]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type. " + exploit.raw_info.replace("\n", ". ").replace("Buffer overflow..", "Requirements: ").replace("Require: ", "").replace("..", "."))
@@ -621,7 +653,6 @@ get_user = function(computer = null, force_user = false)
 end function
 
 register_session = function(result, public_ip = "", quiet = false, subtype = "")
-
 	add_session = function(result, public_ip = "", quiet = false, subtype = "")
 		if ["shell", "file", "computer"].indexOf(typeof(result)) == null then
 			return 
@@ -634,8 +665,8 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
 		end if
 
 		user_info = get_user(result)
-			
-		if globals.sessions.len == 0 then 
+
+		if globals.sessions.len == 0 then
 			user_info.path = current_path
 			user_info.name = active_user
 		end if
@@ -649,21 +680,21 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
 		end if
 
 		tunnel = public_ip + " -> " + get_shell.host_computer.public_ip
-
+		pwd = user_info.path
 		pwd = user_info.path
 
-		pwd = user_info.path
-
-		if globals.sessions.len == 0 then 
-			pwd = program_path.split("/")[0:-1].join("/")
+		if globals.sessions.len == 0 then
+			pwd = program_path.split("/")[0 : -1].join("/")
 		end if
 
-		if subtype == "" then subtype = typeof(result)
+		
+		if subtype == "" then
+			subtype = typeof(result)
+		end if
 
 		new_session = {"name": "", "tunnel": tunnel, "information": subtype + "/" + user_info.name, "shell": result, "computer": computer, "user": user_info.name, "homedir": user_info.path, "pwd": pwd, "public_ip": public_ip, "local_ip": local_ip, "type": typeof(result)}
-		
-		globals.sessions.push(new_session)
 
+		globals.sessions.push(new_session)
 		globals.session = new_session
 
 		if globals.sessions.len == 1 then
@@ -675,27 +706,33 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
 		end if
 
 		return print_good("Command " + typeof(result) + " session " + (globals.sessions.len - 1) + " opened (" + tunnel + ") at " + current_date)
-
 	end function
 
-	add_rshell_sessions = function
+	add_rshell_sessions = function()
 		for shell in metaxploit.rshell_server
 			found = 0
+
 			for session in globals.sessions
-				if hash([session.public_ip, session.local_ip]) == hash([shell.host_computer.public_ip, shell.host_computer.local_ip]) then 
+				if hash([session.public_ip, session.local_ip]) == hash([shell.host_computer.public_ip, shell.host_computer.local_ip]) then
 					found = 1
 					break
 				end if
-			end for			
-			if found then continue
+
+			end for
+
+			
+			if found then
+				continue
+			end if
 			add_session(shell, "", true, "Rshell")
 		end for
+
 	end function
 
 	if globals.sessions.len == 0 then
 		add_session(result)
 		add_rshell_sessions
-	else 
+	else
 		add_rshell_sessions
 		add_session(result)
 	end if
@@ -782,7 +819,6 @@ globals.mtx.config = {}
 
 globals.mtx.start = function()
 	meta_banner
-
 	globals.mtx.reload([], true)
 	counts = []
 	print("\n+ -- -=[ " + " ".pad(5) + " " + ("exploits: ".pad(15) + " " + globals.mtx.exploits_total_count + "").pad(20) + "      ]=- -- +")
@@ -793,7 +829,6 @@ globals.mtx.start = function()
 	end for
 
 	print("+ -- -=[ " + " ".pad(5) + " " + (("payloads: ").pad(15) + " " + globals.mtx.payloads.len).pad(20) + "      ]=- -- +")
-
 	ln
 
 	if globals.exec_params.len > 0 and globals.exec_params[0] == "-x" then
@@ -852,7 +887,6 @@ globals.mtx.start = function()
 		end if
 
 		command = user_input(("mtx" + exploit_path) + " > ").trim
-
 		command_params = command.split(" ")
 		command = command_params[0]
 		command_arguments = []
@@ -900,10 +934,14 @@ globals.mtx.reload = function(params = [], first_loading = false)
 				end for
 				return 
 			end if
+
 		end if
 
 		current_content = current_file.get_content
-		if current_content == "" then return
+		
+		if current_content == "" then
+			return 
+		end if
 		current_content = current_content.replace("""", "")
 		exploit = {}
 		exploit.file = current_file
@@ -931,19 +969,25 @@ globals.mtx.reload = function(params = [], first_loading = false)
 
 	scan_payloads_dir = function(path, forcepath = false)
 		current_file = globals.localsession.computer.File(path)
+
 		for payload_file in current_file.get_files
 			current_content = payload_file.get_content
-			if current_content == "" then return
+			
+			if current_content == "" then
+				return 
+			end if
 			current_content = current_content.replace("""", "")
 			payload = {}
 			payload.id = "payload/" + payload_file.path.split("payloads/")[1].replace(".src", "")
 			payload.file = payload_file
+
 			for index in ["name", "description", "author"]
 				if not payload.hasIndex(index) then
 					payload[index] = "-----"
 				end if
 				payload[index] = (current_content.split("MTXPayload." + index)[1].split("\n")[0].split("=")[1]).trim
 			end for
+
 			globals.mtx.payloads.push(payload)
 		end for
 	end function
@@ -974,37 +1018,50 @@ globals.mtx.set = function(params, is_g = false)
 	end if
 
 	if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
-		if is_g then return
+		
+		if is_g then
+			return 
+		end if
+
 		return print_error(params[0].upper + " => Option not valid for this module")
 	end if
 
 	if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and params[0].upper == "PAYLOAD" then
 		payload_name = params[1].trim
 		globals.mtx.payload = null
+
 		for raw_payload in globals.mtx.payloads
-			if raw_payload.id == payload_name or (payload_name.to_int == (globals.mtx.payloads.indexOf(raw_payload)+1) ) then
+			if raw_payload.id == payload_name or (payload_name.to_int == (globals.mtx.payloads.indexOf(raw_payload) + 1)) then
 				globals.mtx.payload = raw_payload
 				params[1] = globals.mtx.payload.id
 				globals.localsession.shell.build(globals.mtx.payload.file.path, "/home/guest")
 				globals.localsession.shell.launch("/home/guest/" + globals.mtx.payload.file.path.split("/")[-1].replace(".src", ""))
 				get_custom_object.MTXExploit.options = get_custom_object.MTXExploit.options + get_custom_object.MTXPayload.options
+
 				for i in get_custom_object.MTXPayload.options.indexes
 					get_custom_object.MTXExploit.options[i].selection = get_custom_object.MTXPayload.options[i].default
+
 					if globals.mtx.config.hasIndex(i) then
 						get_custom_object.MTXExploit.options[i].selection = globals.mtx.config[i]
 					end if
 				end for
+
 				break
 			end if
+
 		end for
-	
+
 		if not globals.mtx.payload then
 			return print_error("Error: payload module not found")
 		end if
+
 	end if
 
 	get_custom_object.MTXExploit.options[params[0].upper].selection = params[1]
-	if not is_g then print(params[0].upper + " => " + params[1])
+	
+	if not is_g then
+		print(params[0].upper + " => " + params[1])
+	end if
 end function
 
 globals.mtx.unset = function(params, is_g = false)
@@ -1017,14 +1074,19 @@ globals.mtx.unset = function(params, is_g = false)
 	end if
 
 	if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
-		if is_g then return
+		
+		if is_g then
+			return 
+		end if
+
 		return print_error(params[0].upper + " => Option not valid for this module")
 	end if
 
 	get_custom_object.MTXExploit.options[params[0].upper].selection = ""
-
-	if not is_g then print(params[0].upper + " => removed")
-
+	
+	if not is_g then
+		print(params[0].upper + " => removed")
+	end if
 end function
 
 globals.mtx.setg = function(params)
@@ -1051,13 +1113,16 @@ globals.mtx.use = function(params)
 	if params.len == 0 then
 		return print("Usage: use <exploit name>")
 	end if
+
 	exploit_name = params[0].trim
 	globals.mtx.exploit = null
+
 	for raw_exploit in globals.mtx.exploits
-		if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit)+1) ) then
+		if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit) + 1)) then
 			globals.mtx.exploit = raw_exploit
 			break
 		end if
+
 	end for
 
 	if not globals.mtx.exploit then
@@ -1066,20 +1131,17 @@ globals.mtx.use = function(params)
 
 	get_custom_object.MTXExploit = {}
 	get_custom_object.MTXExploit.options = {}
-
 	get_custom_object.MTXPayload = {}
 	get_custom_object.MTXPayload.options = {}
-
 	globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
 	globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
 
-	
-	if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null then 
+	if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null then
 		get_custom_object.MTXExploit.options["PAYLOAD"] = {}
-		get_custom_object.MTXExploit.options["PAYLOAD"].selection    = ""
-		get_custom_object.MTXExploit.options["PAYLOAD"].default      = ""
-		get_custom_object.MTXExploit.options["PAYLOAD"].required     = 0
-		get_custom_object.MTXExploit.options["PAYLOAD"].description  = "Payload to execute after the exploit"
+		get_custom_object.MTXExploit.options["PAYLOAD"].selection = ""
+		get_custom_object.MTXExploit.options["PAYLOAD"].default = ""
+		get_custom_object.MTXExploit.options["PAYLOAD"].required = 0
+		get_custom_object.MTXExploit.options["PAYLOAD"].description = "Payload to execute after the exploit"
 	end if
 
 	for i in get_custom_object.MTXExploit.options.indexes
@@ -1091,7 +1153,6 @@ globals.mtx.use = function(params)
 	end for
 
 	print_good("Module " + globals.mtx.exploit.id + " charged")
-
 end function
 
 globals.mtx.check = function(params)
@@ -1127,7 +1188,7 @@ globals.mtx.run = function(params)
 	get_custom_object.MTXExploit.run(options)
 
 	if globals.sessions.len > old_n_sessions then
-		if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and options["PAYLOAD"] != "" then 
+		if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and options["PAYLOAD"] != "" then
 			get_custom_object.MTXPayload.run(globals.session.shell, globals.localsession.shell, options)
 		end if
 		globals.metexpreter.start
@@ -1174,16 +1235,20 @@ globals.mtx.show = function(params)
 
 	if params[0] == "info" then
 		params.pull
+
 		if params.len == 0 then
 			return print("Usage: show info <exploit name>")
 		end if
+
 		exploit_name = params[0].trim
 		exploit_found = null
+
 		for raw_exploit in globals.mtx.exploits
-			if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit)+1) ) then
+			if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit) + 1)) then
 				exploit_found = raw_exploit
 				break
 			end if
+
 		end for
 
 		if exploit_found == null then
@@ -1192,24 +1257,25 @@ globals.mtx.show = function(params)
 
 		print("Exploit info")
 		print("------------")
-
 		out = []
 		out.push(" Path " + exploit_found.file.path.clean)
 		out.push(" Type " + exploit_found.type.clean)
 		out.push(" Name " + exploit_found.name.clean)
 		out.push(" Rank " + exploit_found.rank.clean)
-		out.push(" "+"Disclosure date".clean + " " + exploit_found.disclosure_date.clean)
+		out.push(" " + "Disclosure date".clean + " " + exploit_found.disclosure_date.clean)
 		privileged = "no"
-		if exploit_found.privileged == "1" then privileged = "yes"
+		
+		if exploit_found.privileged == "1" then
+			privileged = "yes"
+		end if
 		out.push(" Privileged " + privileged)
 
 		print(format_columns(out.join("\n")))
+
 		ln
 		print("Description")
 		print("-----------")
-		print( exploit_found.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n------------\n"))
-
-
+		print(exploit_found.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n------------\n"))
 	end if
 
 end function
@@ -1354,7 +1420,6 @@ globals.mtx.scan = function(params)
 	print_good("Vulnerables addresses founds: " + scan_addresses.len, target + ":" + port)
 
 	for address in scan_addresses
-
 		scan_variables_results = metaxploit.scan_address(meta_lib, address)
 
 		if not scan_variables_results then
@@ -1406,6 +1471,7 @@ globals.mtx.scan = function(params)
 			ln
 			write_exploit(exploit)
 		end for
+
 	end for
 
 end function
@@ -1514,12 +1580,17 @@ globals.mtx.nmap = function(params)
 		local_ip = is_router.local_ip
 		kernel_version = is_router.kernel_version
 	else
-		subnet = ip_address.split(".")[0:-1].join(".")
+		subnet = ip_address.split(".")[0 : -1].join(".")
 		is_router = null
-		for i in range(1,255) 
+
+		for i in range(1, 255)
 			is_router = get_router(subnet + "." + i)
-			if is_router then break
+			
+			if is_router then
+				break
+			end if
 		end for
+
 		local_ip = is_router.local_ip
 		kernel_version = is_router.kernel_version
 	end if
@@ -1680,20 +1751,26 @@ globals.mtx.cd = function(params)
 end function
 
 globals.mtx["new"] = function(params)
-	if params.len < 1 then return print("Usage: new <explpoit|payload>")
-	file_name = md5(current_date)[0:6]
-	if params[0] == "exploit" then 
+	
+	if params.len < 1 then
+		return print("Usage: new <explpoit|payload>")
+	end if
+	file_name = md5(current_date)[0 : 6]
+
+	if params[0] == "exploit" then
 		exploit_example_path = "/usr/share/mtx/exploits/custom/" + "exploit_" + file_name + ".src"
 		write_file(globals.localsession, exploit_example_path, get_exploit_example)
 		print_info("New exploit example created -> " + exploit_example_path)
-		return
+		return 
 	end if
-	if params[0] == "payload" then 
-		payload_example_path = "/usr/share/mtx/payloads/" + "payload_" + file_name +  ".src"
+
+	if params[0] == "payload" then
+		payload_example_path = "/usr/share/mtx/payloads/" + "payload_" + file_name + ".src"
 		write_file(globals.localsession, payload_example_path, get_payload_example)
 		print_info("New payload example created -> " + payload_example_path)
-		return
+		return 
 	end if
+
 end function
 
 globals.mtx.netscan = function(params)
@@ -1702,22 +1779,38 @@ globals.mtx.netscan = function(params)
 	ns_code.push("out = []")
 	ns_code.push("out.push([""Device IP"".replace("" "", char(160)) ,""Gateway"", ""Gateway type"".replace("" "", char(160)), ""Bssid"", ""Essid"", ""Firewall"", ""Ping status"".replace("" "", char(160))].join("" ""))")
 	ns_code.push("out.push([""---------"", ""-------"", ""------------"", ""-----"", ""-----"", ""--------"", ""-----------""].join("" ""))")
+
 	ns_code.push("for ip in router.devices_lan_ip")
+
 	ns_code.push("sub_router = get_router(ip)")
 	ns_code.push("is_switch  = get_switch(ip)")
+
 	ns_code.push("if not sub_router then continue	")
+
 	ns_code.push("gateway_type = ""Device""")
+
 	ns_code.push("if not is_switch then gateway_type = ""Router""")
+
 	ns_code.push("if is_switch then gateway_type = ""Switch""")
+
 	ns_code.push("for sub_device in sub_router.devices_lan_ip")
+
 	ns_code.push("if sub_router.local_ip == sub_device or sub_device.indexOf(sub_router.local_ip.split(""."")[0:-1].join(""."")) == null then continue")
+
 	ns_code.push("type = ""successful""")
+
 	ns_code.push("if is_switch then type = ""<color=#FF3A3A>unreachable</color>""")
+
 	ns_code.push("if sub_router.firewall_rules.len > 0 and sub_router.firewall_rules.indexOf(""DENY Any Any Any"") != null then fw = ""enabled"" else fw = ""disabled""")
+
 	ns_code.push("out.push([sub_device, sub_router.local_ip, (gateway_type + "" "" + sub_router.kernel_version).replace("" "", char(160)), sub_router.bssid_name, sub_router.essid_name, fw, type].join("" ""))")
+
 	ns_code.push("end for")
+
 	ns_code.push("end for")
+
 	ns_code.push("print(format_columns(out.join(""\n"")))")
+
 	ns_code = ns_code.join("\n")
 	write_file(globals.session, "/home/guest/netscan.src", ns_code)
 	globals.session.shell.build("/home/guest/netscan.src", "/home/guest")
@@ -1754,11 +1847,12 @@ globals.mtx.help = function(params)
 	print("   unsetg       Unsets one or more global variables")
 	print("   use          Selects a module by name")
 	print("   nmap         Scan the target to get router info, firewall rules and info about target ports")
-    print("   discover     Scan the globe with random IPs and write the exploits localy")
-    print("   scan         Scan target port and if vulnerable write the exploits localy")
-    print("   new          Generate new template example module")
-    print("   install      Install a service on the victim machine")
-	
+	print("   discover     Scan the globe with random IPs and write the exploits localy")
+
+	print("   scan         Scan target port and if vulnerable write the exploits localy")
+
+	print("   new          Generate new template example module")
+	print("   install      Install a service on the victim machine")
 end function
 
 globals.mtx["?"] = @globals.mtx.help
@@ -1776,7 +1870,6 @@ globals.metexpreter.start = function(params = [])
 
 	while hash(globals.session) != hash(globals.localsession)
 		command = user_input("metexpreter > ").trim
-
 		command_params = command.split(" ")
 		command = command_params[0]
 		command_arguments = []
@@ -1802,13 +1895,16 @@ end function
 
 globals.metexpreter.exit = function(params = [])
 	arr = []
-	session_now   = [globals.localsession.local_ip, globals.localsession.public_ip, globals.localsession.type, globals.localsession.description, globals.localsession.user]
+	session_now = [globals.localsession.local_ip, globals.localsession.public_ip, globals.localsession.type, globals.localsession.description, globals.localsession.user]
 	local_session = [globals.session.local_ip, globals.session.public_ip, globals.session.type, globals.session.description, globals.session.user]
+
 	for session in globals.sessions
 		session_old = [session.local_ip, session.public_ip, session.type, session.description, session.user]
+
 		if hash(session_now) == hash(session_old) then
 			continue
 		end if
+
 		arr.push(session)
 	end for
 
@@ -1937,10 +2033,10 @@ globals.metexpreter.download = function(params)
 	end if
 
 	globals.session.shell.scp(file_to_download.path, globals.localsession.pwd, globals.localsession.shell)
-	
-	downloaded_file = get_file(globals.localsession.shell,  globals.localsession.pwd + "/" + file_to_download.name)
+	downloaded_file = get_file(globals.localsession.shell, globals.localsession.pwd + "/" + file_to_download.name)
 	ln
-	if typeof(downloaded_file) == "file" then 
+
+	if typeof(downloaded_file) == "file" then
 		downloaded_file.set_owner(globals.localsession.user)
 		downloaded_file.set_group(globals.localsession.user)
 	end if
@@ -2083,13 +2179,14 @@ globals.metexpreter.upload = function(params)
 	end if
 
 	result = globals.localsession.shell.scp(file_to_upload.path, globals.session.pwd, globals.session.shell)
-
 	uploaded_file = get_file(globals.session.shell, globals.session.pwd + "/" + file_to_upload.name)
 	ln
+
 	if typeof(uploaded_file) == "file" then
 		uploaded_file.set_owner(globals.session.user)
 		uploaded_file.set_group(globals.session.user)
 	end if
+
 	print_good(file_to_upload.path + " -> " + globals.session.pwd + "/" + file_to_upload.name)
 end function
 
@@ -2099,14 +2196,23 @@ globals.metexpreter.ipconfig = function(params)
 
 	end if
 
-	if params.len == 3 then 
-		device     = params[0].trim
-		local_ip   = params[1].trim
+	if params.len == 3 then
+		device = params[0].trim
+		local_ip = params[1].trim
 		gateway_ip = params[2].trim
-		if not is_valid_ip(local_ip) then return print_error(local_ip + " is not a valid ip address")
-		if not is_valid_ip(local_ip) then return print_error(gateway_ip + " is not a valid ip address")
+		
+		if not is_valid_ip(local_ip) then
+			return print_error(local_ip + " is not a valid ip address")
+		end if
+		
+		if not is_valid_ip(local_ip) then
+			return print_error(gateway_ip + " is not a valid ip address")
+		end if
 		output = globals.session.computer.connect_ethernet(device, local_ip, gateway_ip)
-		if output.len > 0 then return print_error(output)
+		
+		if output.len > 0 then
+			return print_error(output)
+		end if
 		print_good("Network settings updated successfully")
 		ln
 	end if
@@ -2120,7 +2226,7 @@ globals.metexpreter.ipconfig = function(params)
 
 		lip = globals.session.computer.local_ip
 		pip = globals.session.computer.public_ip
-		gw  = globals.session.computer.network_gateway
+		gw = globals.session.computer.network_gateway
 	else
 		lip = "0.0.0.0"
 		pip = "0.0.0.0"
@@ -2398,7 +2504,10 @@ globals.metexpreter.decipher = function(params)
 end function
 
 globals.metexpreter.switch = function(params)
-	if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
+	
+	if globals.session.type != "shell" then
+		return print_error("Only shell sessions can perform this command")
+	end if
 	print_info("Upload " + program_path)
 	ln
 	globals.metexpreter.upload([program_path])
@@ -2416,30 +2525,45 @@ globals.metexpreter.switch = function(params)
 end function
 
 globals.metexpreter.install = function(params)
-	if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
-	if params.len == "0" then return print("Usage: install <ssh|http|ftp|chat|repository|sql|smtp>")
+	
+	if globals.session.type != "shell" then
+		return print_error("Only shell sessions can perform this command")
+	end if
+	
+	if params.len == "0" then
+		return print("Usage: install <ssh|http|ftp|chat|repository|sql|smtp>")
+	end if
 	service = params[0].lower
-	if ["ssh", "http", "ftp", "chat", "repository", "sql", "smtp"].indexOf(service) == null then return print_error(service + " -> Invalid service")
-	library = "lib"+service+".so"
+	
+	if ["ssh", "http", "ftp", "chat", "repository", "sql", "smtp"].indexOf(service) == null then
+		return print_error(service + " -> Invalid service")
+	end if
+	library = "lib" + service + ".so"
 	print_info("Update packages list...")
 	globals.session.shell.launch("/bin/apt-get", "update")
 	print_info("Install " + library + "...")
 	globals.session.shell.launch("/bin/apt-get", "install " + library)
-	install_code = "library = include_lib(""/lib/"+library+"""); if not library then return; library.install_service"
-	print_info("Write the installation and starup code in /home/guest/install_"+service+".src"+"...")
-	write_file(globals.session, "/home/guest/install_"+service+".src", install_code)
-	install_code_file = get_file(globals.session.shell, "/home/guest/install_"+service+".src")
-	if typeof(install_code_file) != "file" then return print_error("Unable to write the install service source in /home/guest/install_"+service+".src")
-	print_info("Build /home/guest/install_"+service+".src...")
-	install_build_result = globals.session.shell.build("/home/guest/install_"+service+".src", "/home/guest")
-	if install_build_result == 0 then return print_error("Unable to build " + "/home/guest/install_"+service+".src")
+
+	install_code = "library = include_lib(""/lib/" + library + """); if not library then return; library.install_service"
+
+	print_info("Write the installation and starup code in /home/guest/install_" + service + ".src" + "...")
+	write_file(globals.session, "/home/guest/install_" + service + ".src", install_code)
+	install_code_file = get_file(globals.session.shell, "/home/guest/install_" + service + ".src")
+	
+	if typeof(install_code_file) != "file" then
+		return print_error("Unable to write the install service source in /home/guest/install_" + service + ".src")
+	end if
+	print_info("Build /home/guest/install_" + service + ".src...")
+	install_build_result = globals.session.shell.build("/home/guest/install_" + service + ".src", "/home/guest")
+	
+	if install_build_result == 0 then
+		return print_error("Unable to build " + "/home/guest/install_" + service + ".src")
+	end if
 	print_info("Launch the install_" + service + " binary")
 	globals.session.shell.launch("/home/guest/install_" + service)
 	print_good("Service " + service + " installation complete!")
 end function
 
 globals.metexpreter.netscan = @globals.mtx.netscan
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 globals.mtx.start
