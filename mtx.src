@@ -498,7 +498,7 @@ get_user = function(shell = null, force_user = false)
 
     root_folder = get_file(shell, "/root/", true)
 
-    if typeof(root_folder) == "file" then
+    if typeof(root_folder) == "file" and root_folder.has_permission("r") then
         user_info.name = root_folder.name
         user_info.path = root_folder.path
         return user_info
@@ -512,7 +512,7 @@ get_user = function(shell = null, force_user = false)
 
             user_folder = get_file(shell, user_folder.path, true)
 
-            if (typeof(user_folder) == "file") then
+            if (typeof(user_folder) == "file") and user_folder.has_permission("r") then
                 user_info.name = user_folder.name
                 user_info.path = user_folder.path
             end if
@@ -1836,6 +1836,8 @@ globals.metexpreter.ls = function(params, search = "")
 
     scan_dir = function(dir, start = false)
         start_dir = get_file(globals.session.shell, dir, true)
+
+        if not start_dir then return print_error(start_dir.path + " -> unable to reach")
 
         if typeof(start_dir) == "string" then return print_error(start_dir)
 
