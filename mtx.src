@@ -716,14 +716,8 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
 
 		for shell in metaxploit_server
 			found = 0
-			public_ip = ""
-			local_ip  = ""
-			if shell.hasIndex("host_computer") then 
-				public_ip = shell.host_computer.public_ip
-				local_ip  = shell.host_computer.local_ip
-			end if
 			for session in globals.sessions
-				if hash([session.public_ip, session.local_ip]) == hash([public_ip, local_ip]) then
+				if hash([session.public_ip, session.local_ip]) == hash([shell.host_computer.public_ip, shell.host_computer.local_ip]) then
 					found = 1
 					break
 				end if
@@ -1201,6 +1195,7 @@ globals.mtx.run = function(params)
 		if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and options["PAYLOAD"] != "" then
 			get_custom_object.MTXPayload.run(globals.session.shell, globals.localsession.shell, options)
 		end if
+		if params.indexOf("-j") != null then return
 		globals.metexpreter.start
 	end if
 
