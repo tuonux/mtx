@@ -2205,7 +2205,7 @@ globals.metexpreter.netscan = @globals.mtx.netscan
 // while true
 //     input = user_input("$ ")
 //     command = input.split(" ")[0]
-//     command_params = input.split(" ")[0:-1]
+//     command_params = input.split(" ")[1:-1]
 //     globals.metexpreter[command](command.params)
 // end while
 // END FOR DEBUG PURPOSE ONLY
