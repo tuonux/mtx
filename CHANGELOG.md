@@ -1,9 +1,22 @@
 ## MTX Framework changelog
 
+### 1.2.0
+
+- Release particulary focused on file system, permissions and reading, writing, and executing things
+- New "run -j" option in mtx console that allow you to run the exploit session in background without start metexpreter
+- New cli command "mtx -j <path_of_commands>" that allow you write a file with commands to execute line by line
+- New cli command "mtx -x <command> <params>" that allow to execute a mtx console command via mtx directly
+- Improvement of the "search" function that allow u to search files in the entile filesystem
+- Fix huge bug that not allow read file or reach folders with right permissions
+- Fix rshell sessions conflicts with already opened sessions
+- Fix file delection wrong method
+- Fix condition to "netscan" command for shell sessions only
+- Very impactive code refactoring
+
 ### 1.1.1
 
-    - fix rshell sessions if rshell not installed on local machine
-    - improve file deletetion logic
+- fix rshell sessions if rshell not installed on local machine
+- improve file deletetion logic
 
 ### 1.1.0
 

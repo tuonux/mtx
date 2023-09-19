@@ -1,814 +1,669 @@
 // # MTX Framework
 // Author: tuonux <tuonux0@gmail.com>
-
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
-
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
 metaxploit = include_lib(metaxploit_path)
 
 if not metaxploit then
-	metaxploit_path = current_path + "/metaxploit.so"
-	metaxploit = include_lib(metaxploit_path)
+    metaxploit_path = current_path + "/metaxploit.so"
+    metaxploit = include_lib(metaxploit_path)
 end if
 
-if not metaxploit then
-	exit("Error: No metaxploit.so library founds")
-end if
+if not metaxploit then exit("Error: No metaxploit.so library founds")
 
 crypto_path = "/lib/crypto.so"
 crypto = include_lib(crypto_path)
 
 if not crypto then
-	crypto_path = current_path + "/crypto.so"
-	crypto = include_lib(crypto_path)
+    crypto_path = current_path + "/crypto.so"
+    crypto = include_lib(crypto_path)
 end if
 
-if not crypto then
-	exit("Error: No crypto.so library founds")
-end if
+if not crypto then exit("Error: No crypto.so library founds")
 
 meta_banner = function()
-	print("           _           __                                             _")
-	print("          | |         / _|                                           | |")
-	print(" _ __ ___ | |___  __ | |_ _ __ __ _ _ __ ___   _____      _____  _ __| | __")
-	print("| '_ ` _ \| __\ \/ / |  _| '__/ _` | '_ ` _ \ / _ \ \ /\ / / _ \| '__| |/ /")
-	print("| | | | | | |_ >  <  | | | | | (_| | | | | | |  __/\ V  V / (_) | |  |   <")
-	print("|_| |_| |_|\__/_/\_\ |_| |_|  \__,_|_| |_| |_|\___| \_/\_/ \___/|_|  |_|\_\")
-	print("\nVersion " + VERSION + " | made by tuonux ( https://github.com/tuonux/mtx )")
+    print("           _           __                                             _")
+    print("          | |         / _|                                           | |")
+    print(" _ __ ___ | |___  __ | |_ _ __ __ _ _ __ ___   _____      _____  _ __| | __")
+    print("| '_ ` _ \| __\ \/ / |  _| '__/ _` | '_ ` _ \ / _ \ \ /\ / / _ \| '__| |/ /")
+    print("| | | | | | |_ >  <  | | | | | (_| | | | | | |  __/\ V  V / (_) | |  |   <")
+    print("|_| |_| |_|\__/_/\_\ |_| |_|  \__,_|_| |_| |_|\___| \_/\_/ \___/|_|  |_|\_\")
+    print("\nVersion " + VERSION + " | made by tuonux ( https://github.com/tuonux/mtx )")
 end function
 
 exec_params = params
 
 string.pad = function(self, len)
-	while self.len < len
-		self = self + " "
-	end while
-	return self
+    while self.len < len
+        self = self + " "
+    end while
+    return self
 end function
 
 string.upper_first = function()
-	if self == "" then
-		return self
-	end if
+    if self == "" then
+        return self
+    end if
 
-	self = self[0].upper + self[1 : ]
-	return self
+    self = self[0].upper + self[1 : ]
+    return self
 end function
 
 string.bold = function()
-	self = "<b>" + self + "</b>"
-	return self
+    self = "<b>" + self + "</b>"
+    return self
 end function
 
 string.italic = function()
-	self = "<i>" + self + "</i>"
-	return self
+    self = "<i>" + self + "</i>"
+    return self
 end function
 
 string.clean = function()
-	self = self + ""
-	self = self.replace(" ", char(160))
-	return self
+    self = self + ""
+    self = self.replace(" ", char(160))
+    return self
 end function
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 debug = function(var, key = "", deep = 1)
-	if typeof(@var) == "string" or typeof(@var) == "number" or typeof(@var) == "null" then
-		print(key.pad(40) + " = " + var)
-		return 
-	end if
+    if typeof(@var) == "string" or typeof(@var) == "number" or typeof(@var) == "null" then
+        return print(key.pad(40) + " = " + var)
+    end if
 
-	for i in var.indexes
-		debug(var[i], key + "[""" + @i + """]")
-	end for
-	ln
+    for i in var.indexes
+        debug(var[i], key + "[""" + @i + """]")
+    end for
+    ln
 end function
 
 ln = function()
-	print("<b></b>")
+    print("<b></b>")
 end function
 
 get_exploit_info = function(scan_address_result)
-	vulnerabilities = []
-	i = -1
+    vulnerabilities = []
+    i = -1
 
-	for line in scan_address_result.split("\n")
-		if line.trim == "" then
-			continue
-		end if
+    for line in scan_address_result.split("\n")
+        if line.trim == "" then continue
 
-		if line.indexOf("Unsafe") != null then
-			i = i + 1
-			key = line.split("in ")[1].split(".")[0]
+        if line.indexOf("Unsafe") != null then
+            i = i + 1
+            key = line.split("in ")[1].split(".")[0]
 
-			if key.indexOf(" ") then
-				key = key.split(" ")[1]
-			end if
+            if key.indexOf(" ") then key = key.split(" ")[1]
 
-			key = key.replace("<b>", "").replace("</b>", "").trim
-			vulnerabilities.push({"variable": key, "requirements": [], "raw": line.replace("<b>", "").replace("</b>", "").trim})
-			continue
-		end if
+            key = key.replace("<b>", "").replace("</b>", "").trim
+            vulnerabilities.push({"variable": key, "requirements": [], "raw": line.replace("<b>", "").replace("</b>", "").trim})
+            continue
+        end if
 
-		line = line.replace("<b>", "").replace("</b>", "").trim
-		vulnerabilities[i].raw = vulnerabilities[i].raw + "\n" + line
-		vulnerabilities[i].requirements.push(line)
-	end for
+        line = line.replace("<b>", "").replace("</b>", "").trim
+        vulnerabilities[i].raw = vulnerabilities[i].raw + "\n" + line
+        vulnerabilities[i].requirements.push(line)
+    end for
 
-	return vulnerabilities
+    return vulnerabilities
 end function
 
 parse_print = function(str, prefix = "", color = "info")
-	symbol = ""
-	
-	if typeof(str) != "string" then
-		str = str + ""
-	end if
-	str = str.replace("\n", char(10))
+    symbol = ""
+    
+    if typeof(str) != "string" then str = str + ""
+    str = str.replace("\n", char(10))
 
-	if prefix + "" != "" then
-		prefix = prefix + " - "
-	end if
+    if prefix + "" != "" then prefix = prefix + " - "
 
-	if color == "info" then
-		symbol = "*"
-	end if
+    if color == "info" then symbol = "*"
 
-	if color == "error" then
-		symbol = "-"
-	end if
+    if color == "error" then symbol = "-"
 
-	if color == "good" then
-		symbol = "+"
-	end if
+    if color == "good" then symbol = "+"
 
-	color = color.replace("error", "#FF3A3A")
-	color = color.replace("good", "#6eb0aa")
-	color = color.replace("info", "#426fa8")
+    color = color.replace("error", "#FF3A3A")
+    color = color.replace("good", "#6eb0aa")
+    color = color.replace("info", "#426fa8")
 
-	for s in str.split("\n")
-		if s == "" then
-			continue
-		end if
+    for s in str.split("\n")
+        if s == "" then continue
 
-		s = s[0].upper + s[1 : ]
-		print("<b><color=" + color + ">[" + symbol + "]</color></b> " + prefix + s)
-	end for
+        s = s[0].upper + s[1 : ]
+        print("<b><color=" + color + ">[" + symbol + "]</color></b> " + prefix + s)
+    end for
 
 end function
 
 print_error = function(str = "", prefix = "")
-	parse_print(str, prefix, "error")
-	return false
+    parse_print(str, prefix, "error")
+    return false
 end function
 
 print_good = function(str = "", prefix = "")
-	parse_print(str, prefix, "good")
-	return true
+    parse_print(str, prefix, "good")
+    return true
 end function
 
 print_info = function(str = "", prefix = "")
-	parse_print(str, prefix, "info")
-	return true
+    parse_print(str, prefix, "info")
+    return true
+end function
+
+
+get_file = function(shell, path, silent = null)
+
+    if path[0] != "/" then path = session.pwd + "/" + path
+    
+    file = shell
+
+    if typeof(shell) == "shell" then file = shell.host_computer.File("/")
+    
+    if typeof(shell) == "computer" then file = shell.File("/")
+
+    while file.path != "/"
+        file = file.parent
+    end while
+
+    i = 0
+
+    if path[-1] == "/" then path = path[0:-1]
+
+    if path == "" then path = "/"
+
+    path = path.replace("//", "/")
+
+    while file.path != path
+
+        i = i + 1
+
+        if i > 10 then break
+
+        if file.path == "/" then
+            directory_to_reach = path.split(file.path)[1]
+        else
+            directory_to_reach = path.split(file.path)[1].split("/")[1]
+        end if
+
+        directory_to_reach = directory_to_reach.replace("//", "/")
+
+        found = null
+
+        for reach_file in file.get_folders + file.get_files
+            if reach_file.name == directory_to_reach then
+                found = 1
+                file = reach_file
+                break
+            end if
+        end for
+
+        if not found then return path + " -> file not found"
+
+    end while
+
+    return file
+
 end function
 
 write_file = function(session, path, content = "")
-	full_path = session.pwd + "/" + path
 
-	if path[0] == "/" then
-		full_path = path
-	end if
+    if path[0] != "/" then path = session.pwd + "/" + path
 
-	chars = "_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890/."
+    chars = "_qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890/."
 
-	for s in full_path
-		if chars.indexOf(s) != null then
-			continue
-		end if
-		full_path = full_path.replace(s, "")
-	end for
+    for s in path
+        if chars.indexOf(s) != null then continue
+        path = path.replace(s, "")
+    end for
 
-	full_path = full_path.replace("//", "/")
-	working_folder = ""
-	folder_split = full_path.split("/")[1 : ]
+    path = path.replace("//", "/")
+    working_folder = ""
+    folder_split = path.split("/")[1 : ]
 
-	for i in range(0, folder_split.len - 2)
-		folder_path = "/" + folder_split[0 : i].join("/")
-		folder_name = folder_split[i]
-		x = session.computer.create_folder(folder_path, folder_name)
-	end for
+    for i in range(0, folder_split.len - 2)
+        folder_path = "/" + folder_split[0 : i].join("/")
+        folder_name = folder_split[i]
+        x = session.computer.create_folder(folder_path, folder_name)
+    end for
 
-	file_to = get_file(session.shell, full_path, true)
+    file_to = get_file(session.shell, path, true)
 
-	if typeof(file_to) != "file" then
-		x = session.computer.touch(full_path.split("/")[0 : -1].join("/"), full_path.split("/")[-1])
-		file_to = session.computer.File(full_path)
+    if typeof(file_to) != "file" then
+        x = session.computer.touch(path.split("/")[0 : -1].join("/"), path.split("/")[-1])
+        file_to = session.computer.File(path)
 
-		if x != true then
-			return 
-		end if
+        if x != true then return
 
-	end if
+    end if
 
-	if typeof(content) != "string" then
-		content = content + ""
-	end if
+    if typeof(content) != "string" then content = content + ""
 
-	file_to.set_content(content.replace("\n", char(10)))
+    file_to.set_content(content.replace("\n", char(10)))
 end function
 
 get_exploit_example = function()
-	out = []
-	out.push("// This module requires MTX Framework:   https://github.com/tuonux/mtx")
-	out.push("// Current source:              		   https://github.com/tuonux/mtx")
-	out.push("")
-	out.push("MTXExploit                    	       = get_custom_object.MTXExploit")
-	out.push("MTXExploit.name               	       = ""[name]""")
-	out.push("MTXExploit.description        	       = ""[description]""")
-	out.push("MTXExploit.author             	       = ""[author]""")
-	out.push("MTXExploit.rank               	       = ""[rank]""")
-	out.push("MTXExploit.privileged         	       = ""[privileged]""")
-	out.push("MTXExploit.disclosure_date    	       = ""[disclosure_date]""")
-	out.push("MTXExploit.options[""RHOST""] 	       = {""required"": 1, ""default"": ""127.0.0.1"", ""description"": ""Target IP Address""}")
-	out.push("MTXExploit.options[""RPORT""] 	       = {""required"": 1, ""default"": ""[port]"", ""description"": ""Target Port Number""}")
-	out.push("MTXExploit.options[""ARGUMENT""]         = {""required"": [argument_required], ""default"": """", ""description"": ""[argument_drescription]""}")
-	out.push("")
+    out = []
+    out.push("// This module requires MTX Framework:   https://github.com/tuonux/mtx")
+    out.push("// Current source:              		   https://github.com/tuonux/mtx")
+    out.push("")
+    out.push("MTXExploit                    	       = get_custom_object.MTXExploit")
+    out.push("MTXExploit.name               	       = ""[name]""")
+    out.push("MTXExploit.description        	       = ""[description]""")
+    out.push("MTXExploit.author             	       = ""[author]""")
+    out.push("MTXExploit.rank               	       = ""[rank]""")
+    out.push("MTXExploit.privileged         	       = ""[privileged]""")
+    out.push("MTXExploit.disclosure_date    	       = ""[disclosure_date]""")
+    out.push("MTXExploit.options[""RHOST""] 	       = {""required"": 1, ""default"": ""127.0.0.1"", ""description"": ""Target IP Address""}")
+    out.push("MTXExploit.options[""RPORT""] 	       = {""required"": 1, ""default"": ""[port]"", ""description"": ""Target Port Number""}")
+    out.push("MTXExploit.options[""ARGUMENT""]         = {""required"": [argument_required], ""default"": """", ""description"": ""[argument_drescription]""}")
+    out.push("")
 
-	out.push("// Every exploit need a check funtion in order to declare if the target is vulnerable or not")
+    out.push("// Every exploit need a check funtion in order to declare if the target is vulnerable or not")
 
-	out.push("// Mabybe a check on the library and the library version can help!")
-	out.push("// The options Map contains the value of the options set by the user.")
+    out.push("// Mabybe a check on the library and the library version can help!")
+    out.push("// The options Map contains the value of the options set by the user.")
 
-	out.push("MTXExploit.check = function(options)")
+    out.push("MTXExploit.check = function(options)")
 
-	out.push("		target          = options.RHOST")
-	out.push("		port            = options.RPORT.to_int")
-	out.push("		argument        = options.ARGUMENT")
-	out.push("		library_name    = ""[library_name]""")
-	out.push("		library_version = ""[library_version]""")
-	out.push("		address         = ""[address]""")
-	out.push("		variable        = ""[variable]""")
-	out.push("		print_info(""Attempt to connect on remote host..."", target+"":""+port)")
-	out.push("		net = metaxploit.net_use(target, port)")
+    out.push("		target          = options.RHOST")
+    out.push("		port            = options.RPORT.to_int")
+    out.push("		argument        = options.ARGUMENT")
+    out.push("		library_name    = ""[library_name]""")
+    out.push("		library_version = ""[library_version]""")
+    out.push("		address         = ""[address]""")
+    out.push("		variable        = ""[variable]""")
+    out.push("		print_info(""Attempt to connect on remote host..."", target+"":""+port)")
+    out.push("		net = metaxploit.net_use(target, port)")
 
-	out.push("		if not net then return print_error(""Unable to connect to remote host"", target+"":""+port)")
+    out.push("		if not net then return print_error(""Unable to connect to remote host"", target+"":""+port)")
 
-	out.push("		print_good(""Succesfully connected!"", target+"":""+port)")
+    out.push("		print_good(""Succesfully connected!"", target+"":""+port)")
 
-	out.push("		if net.dump_lib.lib_name != library_name or net.dump_lib.version.to_int > library_version.to_int then return print_error(""Different library. Required: [library_name] <= [library_version] "", target+"":""+port)")
+    out.push("		if net.dump_lib.lib_name != library_name or net.dump_lib.version.to_int > library_version.to_int then return print_error(""Different library. Required: [library_name] <= [library_version] "", target+"":""+port)")
 
-	out.push("		return true")
+    out.push("		return true")
 
-	out.push("end function")
+    out.push("end function")
 
-	out.push("")
+    out.push("")
 
-	out.push("// This is the run() function to see your exploit in action and perform overflows and other commands that you need!")
+    out.push("// This is the run() function to see your exploit in action and perform overflows and other commands that you need!")
 
-	out.push("// The register_session(overflow_result) make a new sessions registered to the MTX Framework")
-	out.push("// The options Map contains the value of the options set by the user.")
+    out.push("// The register_session(overflow_result) make a new sessions registered to the MTX Framework")
+    out.push("// The options Map contains the value of the options set by the user.")
 
-	out.push("MTXExploit.run = function(options)")
+    out.push("MTXExploit.run = function(options)")
 
-	out.push("		target          = options.RHOST")
-	out.push("		port            = options.RPORT.to_int")
-	out.push("		argument        = options.ARGUMENT")
-	out.push("		library_name    = ""[library_name]""")
-	out.push("		library_version = ""[library_version]""")
-	out.push("		address         = ""[address]""")
-	out.push("		variable        = ""[variable]""")
-	out.push("		print_info(""Attempt to connect on remote host..."", target+"":""+port)")
-	out.push("		net = metaxploit.net_use(target, port)")
+    out.push("		target          = options.RHOST")
+    out.push("		port            = options.RPORT.to_int")
+    out.push("		argument        = options.ARGUMENT")
+    out.push("		library_name    = ""[library_name]""")
+    out.push("		library_version = ""[library_version]""")
+    out.push("		address         = ""[address]""")
+    out.push("		variable        = ""[variable]""")
+    out.push("		print_info(""Attempt to connect on remote host..."", target+"":""+port)")
+    out.push("		net = metaxploit.net_use(target, port)")
 
-	out.push("		if not net then return print_error(""Unable to connect to remote host"", target+"":""+port)")
+    out.push("		if not net then return print_error(""Unable to connect to remote host"", target+"":""+port)")
 
-	out.push("		print_good(""Succesfully connected!"", target+"":""+port)")
+    out.push("		print_good(""Succesfully connected!"", target+"":""+port)")
 
-	out.push("		if net.dump_lib.lib_name != library_name or net.dump_lib.version.to_int > library_version.to_int then return print_error(""Different library. Required: [library_name] <= [library_version] "", target+"":""+port)")
+    out.push("		if net.dump_lib.lib_name != library_name or net.dump_lib.version.to_int > library_version.to_int then return print_error(""Different library. Required: [library_name] <= [library_version] "", target+"":""+port)")
 
-	out.push("		print_good(""Library check: OK"")")
-	out.push("		print_info(""Attempt to oveflow the target library"", target+"":""+port)")
-	out.push("		overflow_result = net.dump_lib.overflow(address, variable, argument)")
+    out.push("		print_good(""Library check: OK"")")
+    out.push("		print_info(""Attempt to oveflow the target library"", target+"":""+port)")
+    out.push("		overflow_result = net.dump_lib.overflow(address, variable, argument)")
 
-	out.push("		if not overflow_result then return print_error(""Unable to perform an overflow to the target library. Try to check the requirements"")")
+    out.push("		if not overflow_result then return print_error(""Unable to perform an overflow to the target library. Try to check the requirements"")")
 
-	out.push("		register_session(overflow_result)")
-	out.push("		return true")
+    out.push("		register_session(overflow_result)")
+    out.push("		return true")
 
-	out.push("end function")
+    out.push("end function")
 
-	out.push("")
-	return out.join(char(10))
+    out.push("")
+    return out.join(char(10))
 end function
 
 get_payload_example = function()
-	out = []
-	out.push("// This module requires MTX Framework:     https://github.com/tuonux/mtx")
-	out.push("// Current source:              		   https://github.com/tuonux/mtx")
-	out.push("")
-	out.push("MTXPayload                   = get_custom_object.MTXPayload")
-	out.push("MTXPayload.name              = ""<enter the payload name>""")
-	out.push("MTXPayload.description       = ""<enter the payload description>""")
-	out.push("MTXPayload.author            = ""<enter the payload author>""")
-	out.push("MTXPayload.options[""STRING""] = {""required"": 1, ""default"": ""world"", ""description"": ""The string after hello""}")
-	out.push("")
+    out = []
+    out.push("// This module requires MTX Framework:     https://github.com/tuonux/mtx")
+    out.push("// Current source:              		   https://github.com/tuonux/mtx")
+    out.push("")
+    out.push("MTXPayload                   = get_custom_object.MTXPayload")
+    out.push("MTXPayload.name              = ""<enter the payload name>""")
+    out.push("MTXPayload.description       = ""<enter the payload description>""")
+    out.push("MTXPayload.author            = ""<enter the payload author>""")
+    out.push("MTXPayload.options[""STRING""] = {""required"": 1, ""default"": ""world"", ""description"": ""The string after hello""}")
+    out.push("")
 
-	out.push("// This is the run() function that run post exploitation")
+    out.push("// This is the run() function that run post exploitation")
 
-	out.push("// remote_object: The object that return after post exploitation <shell|computer|file>")
-	out.push("// local_shell:   Your computer get_shell object")
-	out.push("// options:       Options setted with ""set <option> <value>"" command")
+    out.push("// remote_object: The object that return after post exploitation <shell|computer|file>")
+    out.push("// local_shell:   Your computer get_shell object")
+    out.push("// options:       Options setted with ""set <option> <value>"" command")
 
-	out.push("MTXPayload.run = function(remote_object, local_shell, options)")
+    out.push("MTXPayload.run = function(remote_object, local_shell, options)")
 
-	out.push("		object_type = typeof(remote_object)")
+    out.push("		object_type = typeof(remote_object)")
 
-	out.push("		if object_type != ""shell"" then return print_error(""This payload works with shell sessions only"")")
+    out.push("		if object_type != ""shell"" then return print_error(""This payload works with shell sessions only"")")
 
-	out.push("		print_good(""Hello "" + options[""STRING""] + "" i'm a remote shell and my ip is: "" + remote_object.host_computer.public_ip)")
+    out.push("		print_good(""Hello "" + options[""STRING""] + "" i'm a remote shell and my ip is: "" + remote_object.host_computer.public_ip)")
 
-	out.push("end function")
+    out.push("end function")
 
-	return out.join(char(10))
+    return out.join(char(10))
 end function
 
 write_exploit = function(exploit)
-	rank = 6
-	phrases = ["Overflow on", "Outdated library", "Vulnerable variable on"]
-	phrase = phrases[floor(rnd * phrases.len)]
-	name = phrase + " " + exploit.library + " " + exploit.version
-	req = []
+    rank = 6
+    phrases = ["Overflow on", "Outdated library", "Vulnerable variable on"]
+    phrase = phrases[floor(rnd * phrases.len)]
+    name = phrase + " " + exploit.library + " " + exploit.version
+    req = []
 
-	// req.push("specific namespace version")
+    // req.push("specific namespace version")
 
-	if exploit.raw_info.lower.indexOf("namespace") then
+    if exploit.raw_info.lower.indexOf("namespace") then
 
-	end if
+    end if
 
-	if exploit.raw_info.lower.indexOf("root") then
-		rank = rank - 1
-	end if
+    if exploit.raw_info.lower.indexOf("root") then
+        rank = rank - 1
+    end if
 
-	if exploit.raw_info.lower.indexOf("router") then
-		rank = rank - 2
+    if exploit.raw_info.lower.indexOf("router") then
+        rank = rank - 2
 
-		// req.push("forwarded port")
-	end if
+        // req.push("forwarded port")
+    end if
 
-	if exploit.raw_info.lower.indexOf("users") and (exploit.raw_info.lower.indexOf("minimum number of 1") == null and exploit.raw_info.lower.indexOf("minimum number of 2") == null) then
-		rank = rank - 1
-	end if
+    if exploit.raw_info.lower.indexOf("users") and (exploit.raw_info.lower.indexOf("minimum number of 1") == null and exploit.raw_info.lower.indexOf("minimum number of 2") == null) then
+        rank = rank - 1
+    end if
 
-	if exploit.raw_info.lower.indexOf("active user") then
-		rank = rank - 1
-		// req.push("an active user")
-	end if
+    if exploit.raw_info.lower.indexOf("active user") then
+        rank = rank - 1
+        // req.push("an active user")
+    end if
 
-	if exploit.library.indexOf("router") != null and exploit.raw_info.lower.indexOf("local network") then
-		rank = rank - 1
-		// req.push("target on same network")
-	end if
+    if exploit.library.indexOf("router") != null and exploit.raw_info.lower.indexOf("local network") then
+        rank = rank - 1
+        // req.push("target on same network")
+    end if
 
-	if req.len > 0 then
-		name = name + " with " + req.join(" and ")
-	end if
+    if req.len > 0 then name = name + " with " + req.join(" and ")
 
-	if rank == 1 then
-		rank = "Low"
-	end if
+    if rank == 1 then rank = "Low"
+    if rank == 2 then rank = "Average"
+    if rank == 3 then rank = "Normal"
+    if rank == 4 then rank = "Good"
+    if rank == 5 then rank = "Great"
+    if rank == 6 then rank = "Excellent"
 
-	if rank == 2 then
-		rank = "Average"
-	end if
+    exploit_content = get_exploit_example
+    exploit_content = exploit_content.replace("[name]", name)
+    exploit_content = exploit_content.replace("[author]", "MTX DScanner")
+    exploit_content = exploit_content.replace("[rank]", rank)
+    exploit_content = exploit_content.replace("[privileged]", get_user(exploit.overflow).name != "guest")
+    exploit_content = exploit_content.replace("[disclosure_date]", current_date.split(" ")[0])
+    exploit_content = exploit_content.replace("[library_name]", exploit.library)
+    exploit_content = exploit_content.replace("[library_version]", exploit.version)
+    exploit_content = exploit_content.replace("[address]", exploit.address)
+    exploit_content = exploit_content.replace("[variable]", exploit.variable)
+    exploit_content = exploit_content.replace("[argument_required]", exploit.type == "passwchanger" or exploit.type == "lanswitcher")
+    argument_description = ""
 
-	if rank == 3 then
-		rank = "Normal"
-	end if
+    if exploit.type == "passwchanger" then
+        argument_description = "New alphanumeric user password"
+        exploit_content = exploit_content.replace("ARGUMENT", "NEW_PASSWORD")
+    end if
 
-	if rank == 4 then
-		rank = "Good"
-	end if
+    if exploit.type == "lanswitcher" then
+        argument_description = "Lan target IP"
+        exploit_content = exploit_content.replace("ARGUMENT", "RLANIP")
+    end if
 
-	if rank == 5 then
-		rank = "Great"
-	end if
+    port = "0"
+    
+    if exploit.library == "libssh.so" then port = "22"
+    
+    if exploit.library == "libhttp.so" then port = "80"
+    
+    if exploit.library == "libftp.so" then port = "22"
+    
+    if exploit.library == "kernel_router.so" then  port = "0"
+    
+    if exploit.library == "libsql.so" then port = "3306"
+    
+    if exploit.library == "libsmtp.so" then port = "25"
 
-	if rank == 6 then
-		rank = "Excellent"
-	end if
-
-	exploit_content = get_exploit_example
-	exploit_content = exploit_content.replace("[name]", name)
-	exploit_content = exploit_content.replace("[author]", "MTX DScanner")
-	exploit_content = exploit_content.replace("[rank]", rank)
-	exploit_content = exploit_content.replace("[privileged]", get_user(exploit.overflow).name != "guest")
-	exploit_content = exploit_content.replace("[disclosure_date]", current_date.split(" ")[0])
-	exploit_content = exploit_content.replace("[library_name]", exploit.library)
-	exploit_content = exploit_content.replace("[library_version]", exploit.version)
-	exploit_content = exploit_content.replace("[address]", exploit.address)
-	exploit_content = exploit_content.replace("[variable]", exploit.variable)
-	exploit_content = exploit_content.replace("[argument_required]", exploit.type == "passwchanger" or exploit.type == "lanswitcher")
-	argument_description = ""
-
-	if exploit.type == "passwchanger" then
-		argument_description = "New alphanumeric user password"
-		exploit_content = exploit_content.replace("ARGUMENT", "NEW_PASSWORD")
-	end if
-
-	if exploit.type == "lanswitcher" then
-		argument_description = "Lan target IP"
-		exploit_content = exploit_content.replace("ARGUMENT", "RLANIP")
-	end if
-
-	port = "0"
-	
-	if exploit.library == "libssh.so" then
-		port = "22"
-	end if
-	
-	if exploit.library == "libhttp.so" then
-		port = "80"
-	end if
-	
-	if exploit.library == "libftp.so" then
-		port = "22"
-	end if
-	
-	if exploit.library == "kernel_router.so" then
-		port = "0"
-	end if
-	
-	if exploit.library == "libsql.so" then
-		port = "3306"
-	end if
-	
-	if exploit.library == "libsmtp.so" then
-		port = "25"
-	end if
-	exploit_content = exploit_content.replace("[port]", port)
-	exploit_content = exploit_content.replace("[argument_drescription]", argument_description)
-	// RICORDATI DI CAMBIARE LA DESCRIZIONE PER I TIPI NUMBER E LAN_SWITCH
-	exploit_content = exploit_content.replace("[description]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type. " + exploit.raw_info.replace("\n", ". ").replace("Buffer overflow..", "Requirements: ").replace("Require: ", "").replace("..", "."))
-	write_file(globals.localsession, "/usr/share/mtx/" + exploit.name + ".src", exploit_content)
+    exploit_content = exploit_content.replace("[port]", port)
+    exploit_content = exploit_content.replace("[argument_drescription]", argument_description)
+    // RICORDATI DI CAMBIARE LA DESCRIZIONE PER I TIPI NUMBER E LAN_SWITCH
+    exploit_content = exploit_content.replace("[description]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type. " + exploit.raw_info.replace("\n", ". ").replace("Buffer overflow..", "Requirements: ").replace("Require: ", "").replace("..", "."))
+    write_file(globals.localsession, "/usr/share/mtx/" + exploit.name + ".src", exploit_content)
 end function
 
 compose_exploit_name = function(exploit)
-	name = []
-	type = "generic"
+    name = []
+    type = "generic"
 
-	if exploit.type and exploit.type != "" then
-		type = exploit.type
-	end if
+    if exploit.type and exploit.type != "" then type = exploit.type
 
-	name.push(type)
-	name.push(exploit.library.split(".")[0].replace("lib", "").replace("kernel_", ""))
-	name.push(exploit.version.replace(".", "") + "_" + exploit.address + "_" + exploit.variable[0 : 6])
-	return name.join("/")
+    name.push(type)
+    name.push(exploit.library.split(".")[0].replace("lib", "").replace("kernel_", ""))
+    name.push(exploit.version.replace(".", "") + "_" + exploit.address + "_" + exploit.variable[0 : 6])
+    return name.join("/")
 end function
 
 get_options = function(meta_options)
-	options = {}
+    options = {}
 
-	for option in meta_options
-		if option.value.hasIndex("selection") and option.value.selection == "" and option.value.required == 1 then
-			return print_error(option.key + " => Required")
-		end if
+    for option in meta_options
+        if option.value.hasIndex("selection") and option.value.selection == "" and option.value.required == 1 then
+            return print_error(option.key + " => Required")
+        end if
 
-		if not option.value.hasIndex("selection") and option.value.hasIndex("default") then
-			options[option.key.upper] = option.value.default + ""
-			continue
-		end if
-		options[option.key.upper] = option.value.selection + ""
-	end for
+        if not option.value.hasIndex("selection") and option.value.hasIndex("default") then
+            options[option.key.upper] = option.value.default + ""
+            continue
+        end if
+        options[option.key.upper] = option.value.selection + ""
+    end for
 
-	return options
+    return options
 end function
 
-get_file_object = function(computer, path, type = "file", silent = null, permissions = "r")
-	if path.indexOf("/") == null then
-		path = globals.session.pwd + "/" + path
-	end if
+get_user = function(shell = null, force_user = false)
+    user_info = {}
+    user_info.name = "guest"
+    user_info.path = "/home/guest/"
 
-	if typeof(computer) == "computer" then
-		file = computer.File(path)
-	else if typeof(computer) == "shell" then
-		file = computer.host_computer.File(path)
-	else
-		file = get_path_by_file(computer, path)
-	end if
+    if ["shell", "shell", "file"].indexOf(typeof(shell)) == null then return user_info
 
-	error = null
+    if force_user and force_user != "root" then
+        user_info.name = force_user
 
-	if not file then
-		error = (path + " doesn't exists")
+        user_directory = get_file(shell, "/home/" + force_user, true)
 
-		if not silent then
-			print(error)
-		end if
+        if typeof(user_directory) == "string" then  return user_info
 
-		return error
-	end if
+        user_info.path = user_directory.path
+        return user_info
+    end if
 
-	if not error and type == "file" and file.is_folder then
-		error = (file.path + " is a directory")
+    root_folder = get_file(shell, "/root/", true)
 
-		if not silent then
-			print_error(error)
-		end if
-	end if
+    if typeof(root_folder) == "file" then
+        user_info.name = root_folder.name
+        user_info.path = root_folder.path
+        return user_info
+    end if
 
-	if not error and type == "directory" and not file.is_folder then
-		error = (file.path + "/ isn't a directory.")
+    home_folders = get_file(shell, "/home/", true)
 
-		if not silent then
-			print_error(error)
-		end if
-	end if
+    if (typeof(home_folders) == "file") then
+        for user_folder in home_folders.get_folders
+            if user_folder.name == "guest" then continue
 
-	if not error then
-		for p in permissions
-			if not file.has_permission(p) then
-				error = (path + ": Permission denied")
+            user_folder = get_file(shell, user_folder.path, true)
 
-				if not silent then
-					print_error(error)
-				end if
-			end if
+            if (typeof(user_folder) == "file") then
+                user_info.name = user_folder.name
+                user_info.path = user_folder.path
+            end if
+        end for
 
-		end for
+    end if
 
-	end if
-
-	if error then
-		return error
-	end if
-
-	return file
-end function
-
-get_file = function(computer, path, silent = null, permissions = "r")
-	return get_file_object(computer, path, "file", silent, permissions)
-end function
-
-get_directory = function(computer, path, silent = null, permissions = "r")
-	return get_file_object(computer, path, "directory", silent, permissions)
-end function
-
-get_path_by_file = function(file, path)
-	if path != "/" and path[-1] == "/" then
-		path = path[0 : -1]
-	end if
-
-	while file.path != "/"
-		file = file.parent
-	end while
-
-	i = 0
-
-	while file.path != path
-		i = i + 1
-
-		if i > 10 then
-			break
-		end if
-
-		if file.path == "/" then
-			directory_to_reach = path.split(file.path)[1]
-		else
-			directory_to_reach = path.split(file.path)[1].split("/")[1]
-		end if
-
-		found = null
-
-		for reach_file in file.get_folders + file.get_files
-			if reach_file.name == directory_to_reach then
-				found = 1
-				file = reach_file
-				break
-			end if
-
-		end for
-
-		if not found then
-			return null
-		end if
-
-	end while
-
-	return file
-end function
-
-get_user = function(computer = null, force_user = false)
-	user_info = {}
-	user_info.name = "guest"
-	user_info.path = "/home/guest/"
-
-	if ["shell", "computer", "file"].indexOf(typeof(computer)) == null then
-		return user_info
-	end if
-
-	if force_user and force_user != "root" then
-		user_info.name = force_user
-
-		user_directory = get_directory(computer, "/home/" + force_user, true)
-
-		if typeof(user_directory) == "string" then
-			return user_info
-		end if
-
-		user_info.path = user_directory.path
-		return user_info
-	end if
-
-	root_folder = get_directory(computer, "/root/", true)
-
-	if typeof(root_folder) == "file" then
-		user_info.name = root_folder.name
-		user_info.path = root_folder.path
-		return user_info
-	end if
-
-	home_folders = get_directory(computer, "/home/", true)
-
-	if (typeof(home_folders) == "file") then
-		for user_folder in home_folders.get_folders
-			if user_folder.name == "guest" then
-				continue
-			end if
-
-			user_folder = get_directory(computer, user_folder.path, true)
-
-			if (typeof(user_folder) == "file") then
-				user_info.name = user_folder.name
-				user_info.path = user_folder.path
-			end if
-		end for
-
-	end if
-
-	return user_info
+    return user_info
 end function
 
 register_session = function(result, public_ip = "", quiet = false, subtype = "")
-	add_session = function(result, public_ip = "", quiet = false, subtype = "")
-		if ["shell", "file", "computer"].indexOf(typeof(result)) == null then
-			return 
-		end if
+    add_session = function(result, public_ip = "", quiet = false, subtype = "")
+        if ["shell", "file", "computer"].indexOf(typeof(result)) == null then return
 
-		computer = result
+        computer = result
 
-		if typeof(result) == "shell" then
-			computer = result.host_computer
-		end if
+        if typeof(result) == "shell" then computer = result.host_computer
 
-		user_info = get_user(result)
+        user_info = get_user(result)
 
-		if globals.sessions.len == 0 then
-			user_info.path = current_path
-			user_info.name = active_user
-		end if
+        if globals.sessions.len == 0 then
+            user_info.path = current_path
+            user_info.name = active_user
+        end if
 
-		public_ip = ""
-		local_ip = ""
+        public_ip = ""
+        local_ip = ""
 
-		if typeof(result) != "file" then
-			public_ip = computer.public_ip
-			local_ip = computer.local_ip
-		end if
+        if typeof(result) != "file" then
+            public_ip = computer.public_ip
+            local_ip = computer.local_ip
+        end if
 
-		tunnel = public_ip + " -> " + get_shell.host_computer.public_ip
-		pwd = user_info.path
-		pwd = user_info.path
+        tunnel = public_ip + " -> " + get_shell.host_computer.public_ip
+        pwd = user_info.path
+        pwd = user_info.path
 
-		if globals.sessions.len == 0 then
-			pwd = program_path.split("/")[0 : -1].join("/")
-		end if
+        if globals.sessions.len == 0 then pwd = program_path.split("/")[0 : -1].join("/")
 
-		
-		if subtype == "" then
-			subtype = typeof(result)
-		end if
+        
+        if subtype == "" then subtype = typeof(result)
 
-		new_session = {"name": "", "tunnel": tunnel, "information": subtype + "/" + user_info.name, "shell": result, "computer": computer, "user": user_info.name, "homedir": user_info.path, "pwd": pwd, "public_ip": public_ip, "local_ip": local_ip, "type": typeof(result)}
+        new_session = {"name": "", "tunnel": tunnel, "information": subtype + "/" + user_info.name, "shell": result, "computer": computer, "user": user_info.name, "homedir": user_info.path, "pwd": pwd, "public_ip": public_ip, "local_ip": local_ip, "type": typeof(result)}
 
-		globals.sessions.push(new_session)
-		globals.session = new_session
+        globals.sessions.push(new_session)
+        globals.session = new_session
 
-		if globals.sessions.len == 1 then
-			return 
-		end if
+        if globals.sessions.len == 1 then return
 
-		if quiet == true then
-			return 
-		end if
+        if quiet == true then return
 
-		return print_good("Command " + typeof(result) + " session " + (globals.sessions.len - 1) + " opened (" + tunnel + ") at " + current_date)
-	end function
+        return print_good("Command " + typeof(result) + " session " + (globals.sessions.len - 1) + " opened (" + tunnel + ") at " + current_date)
+    end function
 
-	add_rshell_sessions = function()
+    add_rshell_sessions = function()
 
-		metaxploit_server = metaxploit.rshell_server
+        metaxploit_server = metaxploit.rshell_server
 
-		if typeof(metaxploit_server) == "string" then return
+        if typeof(metaxploit_server) == "string" then return
 
-		for shell in metaxploit_server
-			found = 0
-			for session in globals.sessions
-				if hash([session.public_ip, session.local_ip]) == hash([shell.host_computer.public_ip, shell.host_computer.local_ip]) then
-					found = 1
-					break
-				end if
+        for shell in metaxploit_server
+            found = 0
+            for session in globals.sessions
+                if hash([session.public_ip, session.local_ip]) == hash([shell.host_computer.public_ip, shell.host_computer.local_ip]) then
+                    found = 1
+                    break
+                end if
 
-			end for
+            end for
 
-			
-			if found then
-				continue
-			end if
-			add_session(shell, "", true, "Rshell")
-		end for
+            
+            if found then continue
 
-	end function
+            add_session(shell, "", true, "Rshell")
 
-	if globals.sessions.len == 0 then
-		add_session(result)
-		add_rshell_sessions
-	else
-		add_rshell_sessions
-		add_session(result)
-	end if
+        end for
+
+    end function
+
+    if globals.sessions.len == 0 then
+        add_session(result)
+        add_rshell_sessions
+    else
+        add_rshell_sessions
+        add_session(result)
+    end if
 
 end function
 
 make_table = function(arr, name, columns, search)
-	out = []
-	header = []
-	header.push("#")
+    out = []
+    header = []
+    header.push("#")
 
-	for column in columns
-		header.push(column.value.label.upper_first.replace(" ", char(160)))
-	end for
+    for column in columns
+        header.push(column.value.label.upper_first.replace(" ", char(160)))
+    end for
 
-	out.push(header.join(" "))
-	header = []
-	header.push("-")
+    out.push(header.join(" "))
+    header = []
+    header.push("-")
 
-	for column in columns
-		header.push("-" * column.value.label.len)
-	end for
+    for column in columns
+        header.push("-" * column.value.label.len)
+    end for
 
-	out.push(header.join(" "))
-	i = 0
+    out.push(header.join(" "))
+    i = 0
 
-	for val in arr
-		if search and search.len > 0 then
-			rowfound = 0
+    for val in arr
+        if search and search.len > 0 then
+            rowfound = 0
 
-			for s in search
-				found = 0
+            for s in search
+                found = 0
 
-				for column in columns
-					if val[column.key].lower.indexOf(s.lower) != null and found == 0 then
-						found = found + 1
-					end if
+                for column in columns
+                    if val[column.key].lower.indexOf(s.lower) != null and found == 0 then
+                        found = found + 1
+                    end if
 
-				end for
+                end for
 
-				rowfound = rowfound + found
-			end for
+                rowfound = rowfound + found
+            end for
 
-			if rowfound != search.len then
-				continue
-			end if
-		end if
+            if rowfound != search.len then continue
+        end if
 
-		rows = []
-		i = i + 1
-		rows.push(arr.indexOf(val) + 1)
+        rows = []
+        i = i + 1
+        rows.push(arr.indexOf(val) + 1)
 
-		for column in columns
-			label = val[column.key].upper_first
+        for column in columns
+            label = val[column.key].upper_first
 
-			if column.value.hasIndex("uf") and column.value.uf == false then
-				label = val[column.key]
-			end if
+            if column.value.hasIndex("uf") and column.value.uf == false then
+                label = val[column.key]
+            end if
 
-			rows.push(label.replace(" ", char(160)))
-		end for
+            rows.push(label.replace(" ", char(160)))
+        end for
 
-		out.push(rows.join(" "))
-	end for
+        out.push(rows.join(" "))
+    end for
 
-	if out.len == 2 then
-		return print_error("No results founds")
-	end if
+    if out.len == 2 then return print_error("No results founds")
 
-	print("\n" + name + "\n" + ("-" * name.len) + "\n")
+    print("\n" + name + "\n" + ("-" * name.len) + "\n")
 
-	print(format_columns(out.join("\n")))
+    print(format_columns(out.join("\n")))
 
 end function
 
@@ -822,1048 +677,908 @@ globals.mtx = {}
 globals.mtx.config = {}
 
 globals.mtx.start = function()
-	meta_banner
-	globals.mtx.reload([], true)
-	counts = []
-	print("\n+ -- -=[ " + " ".pad(5) + " " + ("exploits: ".pad(15) + " " + globals.mtx.exploits_total_count + "").pad(20) + "      ]=- -- +")
+    meta_banner
+    globals.mtx.reload([], true)
+    counts = []
+    print("\n+ -- -=[ " + " ".pad(5) + " " + ("exploits: ".pad(15) + " " + globals.mtx.exploits_total_count + "").pad(20) + "      ]=- -- +")
 
-	for count in globals.mtx.exploits_count
-		counts.push(count.key + "s: " + count.value)
-		print("+ -- -=[ " + " ".pad(5) + " " + ((count.key + "s: ").pad(15) + " " + count.value).pad(20) + "      ]=- -- +")
-	end for
+    for count in globals.mtx.exploits_count
+        counts.push(count.key + "s: " + count.value)
+        print("+ -- -=[ " + " ".pad(5) + " " + ((count.key + "s: ").pad(15) + " " + count.value).pad(20) + "      ]=- -- +")
+    end for
 
-	print("+ -- -=[ " + " ".pad(5) + " " + (("payloads: ").pad(15) + " " + globals.mtx.payloads.len).pad(20) + "      ]=- -- +")
-	ln
+    print("+ -- -=[ " + " ".pad(5) + " " + (("payloads: ").pad(15) + " " + globals.mtx.payloads.len).pad(20) + "      ]=- -- +")
+    ln
 
-	if globals.exec_params.len > 0 and globals.exec_params[0] == "-x" then
-		if globals.exec_params < 2 then
-			return print("Usage: -x <command> <params>")
-		end if
+    if globals.exec_params.len > 0 and globals.exec_params[0] == "-x" then
+        if globals.exec_params < 2 then return print("Usage: -x <command> <params>")
 
-		globals.exec_params.pull
-		command = globals.exec_params[0]
-		command_arguments = globals.exec_params[1 : ]
+        globals.exec_params.pull
+        command = globals.exec_params[0]
+        command_arguments = globals.exec_params[1 : ]
 
-		if not globals.mtx.hasIndex(command) then
-			return print_error(command + " -> Invalid command")
-		end if
+        if not globals.mtx.hasIndex(command) then return print_error(command + " -> Invalid command")
 
-		globals.mtx[command](command_arguments)
-		ln
-	end if
+        globals.mtx[command](command_arguments)
+        ln
+    end if
 
-	if globals.exec_params.len > 0 and globals.exec_params[0] == "-j" then
-		ln
+    if globals.exec_params.len > 0 and globals.exec_params[0] == "-j" then
+        ln
 
-		if globals.exec_params < 2 then
-			return print("Usage: -j <file path>")
-		end if
+        if globals.exec_params < 2 then return print("Usage: -j <file path>")
 
-		globals.exec_params.pull
-		file = get_file(globals.localsession.shell, params[0].trim)
+        globals.exec_params.pull
+        file = get_file(globals.localsession.shell, params[0].trim)
 
-		if typeof(file) != "file" then
-			return print_error(params[0] + " -> Invalid path")
-		end if
+        if typeof(file) != "file" then return print_error(params[0] + " -> Invalid path")
 
-		for line in file.get_content.split("\n")
-			command_split = line.split(" ")
-			command = command_split[0].trim
-			command_arguments = command_split[1 : ]
+        for line in file.get_content.split("\n")
+            command_split = line.split(" ")
+            command = command_split[0].trim
+            command_arguments = command_split[1 : ]
 
-			if not globals.mtx.hasIndex(command) then
-				return print_error(command + " -> Invalid command")
-			end if
+            if not globals.mtx.hasIndex(command) then return print_error(command + " -> Invalid command")
 
-			globals.mtx[command](command_arguments)
-			ln
-		end for
+            globals.mtx[command](command_arguments)
+            ln
+        end for
 
-	end if
+    end if
 
-	while true
-		exploit_path = ""
+    while true
+        exploit_path = ""
 
-		if globals.mtx.exploit then
-			firts_part = globals.mtx.exploit.id.split("/")[0]
-			second_part = globals.mtx.exploit.id.split("/")[1 : ].join("/")
-			exploit_path = " " + firts_part + "(<color=#FF3A3A>" + second_part + ")</color>"
-		end if
+        if globals.mtx.exploit then
+            firts_part = globals.mtx.exploit.id.split("/")[0]
+            second_part = globals.mtx.exploit.id.split("/")[1 : ].join("/")
+            exploit_path = " " + firts_part + "(<color=#FF3A3A>" + second_part + ")</color>"
+        end if
 
-		command = user_input(("mtx" + exploit_path) + " > ").trim
-		command_params = command.split(" ")
-		command = command_params[0]
-		command_arguments = []
+        command = user_input(("mtx" + exploit_path) + " > ").trim
+        command_params = command.split(" ")
+        command = command_params[0]
+        command_arguments = []
 
-		if command_params.len > 1 then
-			command_arguments = command_params[1 : ]
-		end if
+        if command_params.len > 1 then command_arguments = command_params[1 : ]
 
-		if globals.mtx.hasIndex(command) then
-			print
-			ln
-			globals.mtx[command](command_arguments)
-			ln
-			continue
-		end if
+        if globals.mtx.hasIndex(command) then
+            print
+            ln
+            globals.mtx[command](command_arguments)
+            ln
+            continue
+        end if
 
-	end while
+    end while
 
 end function
 
 globals.mtx.reload = function(params = [], first_loading = false)
-	globals.mtx.exploits = []
-	globals.mtx.payloads = []
-	globals.mtx.exploits_count = {}
-	globals.mtx.exploits_total_count = 0
-	globals.mtx.exploit = null
-	globals.mtx.payload = null
-	get_custom_object.MTXExploit = {}
-	get_custom_object.MTXExploit.options = {}
-	get_custom_object.MTXPayload = {}
-	get_custom_object.MTXPayload.options = {}
-	globals.localsession.computer.create_folder("/usr", "share")
-	globals.localsession.computer.create_folder("/usr/share", "mtx")
-	globals.localsession.computer.create_folder("/usr/share/mtx", "exploits")
-	globals.localsession.computer.create_folder("/usr/share/mtx/exploits", "custom")
-	globals.localsession.computer.create_folder("/usr/share/mtx", "payloads")
+    globals.mtx.exploits = []
+    globals.mtx.payloads = []
+    globals.mtx.exploits_count = {}
+    globals.mtx.exploits_total_count = 0
+    globals.mtx.exploit = null
+    globals.mtx.payload = null
+    get_custom_object.MTXExploit = {}
+    get_custom_object.MTXExploit.options = {}
+    get_custom_object.MTXPayload = {}
+    get_custom_object.MTXPayload.options = {}
+    globals.localsession.computer.create_folder("/usr", "share")
+    globals.localsession.computer.create_folder("/usr/share", "mtx")
+    globals.localsession.computer.create_folder("/usr/share/mtx", "exploits")
+    globals.localsession.computer.create_folder("/usr/share/mtx/exploits", "custom")
+    globals.localsession.computer.create_folder("/usr/share/mtx", "payloads")
 
-	scan_exploits_dir = function(path, forcepath = false)
-		current_file = globals.localsession.computer.File(path)
+    scan_exploits_dir = function(path, forcepath = false)
+        current_file = globals.localsession.computer.File(path)
 
-		if not forcepath then
-			if current_file.is_folder then
-				for folder in current_file.get_folders + current_file.get_files
-					scan_exploits_dir(folder.path)
-				end for
-				return 
-			end if
+        if not forcepath then
+            if current_file.is_folder then
+                for folder in current_file.get_folders + current_file.get_files
+                    scan_exploits_dir(folder.path)
+                end for
+                return 
+            end if
 
-		end if
+        end if
 
-		current_content = current_file.get_content
-		
-		if current_content == "" then
-			return 
-		end if
-		current_content = current_content.replace("""", "")
-		exploit = {}
-		exploit.file = current_file
-		exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace(".src", "")
-		exploit.type = exploit.id.split("exploit/")[1].split("/")[0]
+        current_content = current_file.get_content
+        
+        if current_content == "" then return
+        current_content = current_content.replace("""", "")
+        exploit = {}
+        exploit.file = current_file
+        exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace(".src", "")
+        exploit.type = exploit.id.split("exploit/")[1].split("/")[0]
 
-		for index in ["name", "rank", "disclosure_date", "privileged", "description"]
-			if not exploit.hasIndex(index) then
-				exploit[index] = "-----"
-			end if
-			exploit[index] = (current_content.split("MTXExploit." + index)[1].split("\n")[0].split("=")[1]).trim
-		end for
+        for index in ["name", "rank", "disclosure_date", "privileged", "description"]
+            if not exploit.hasIndex(index) then exploit[index] = "-----"
+            exploit[index] = (current_content.split("MTXExploit." + index)[1].split("\n")[0].split("=")[1]).trim
+        end for
 
-		if not globals.mtx.exploits_count.hasIndex(exploit.type) and exploit.id.split("/").len > 2 then
-			globals.mtx.exploits_count[exploit.type] = 0
-		end if
+        if not globals.mtx.exploits_count.hasIndex(exploit.type) and exploit.id.split("/").len > 2 then
+            globals.mtx.exploits_count[exploit.type] = 0
+        end if
 
-		if exploit.id.split("/").len > 2 then
-			globals.mtx.exploits_count[exploit.type] = globals.mtx.exploits_count[exploit.type] + 1
-		end if
+        if exploit.id.split("/").len > 2 then
+            globals.mtx.exploits_count[exploit.type] = globals.mtx.exploits_count[exploit.type] + 1
+        end if
 
-		globals.mtx.exploits_total_count = globals.mtx.exploits_total_count + 1
-		globals.mtx.exploits.push(exploit)
-	end function
+        globals.mtx.exploits_total_count = globals.mtx.exploits_total_count + 1
+        globals.mtx.exploits.push(exploit)
+    end function
 
-	scan_payloads_dir = function(path, forcepath = false)
-		current_file = globals.localsession.computer.File(path)
+    scan_payloads_dir = function(path, forcepath = false)
+        current_file = globals.localsession.computer.File(path)
 
-		for payload_file in current_file.get_files
-			current_content = payload_file.get_content
-			
-			if current_content == "" then
-				return 
-			end if
-			current_content = current_content.replace("""", "")
-			payload = {}
-			payload.id = "payload/" + payload_file.path.split("payloads/")[1].replace(".src", "")
-			payload.file = payload_file
+        for payload_file in current_file.get_files
+            current_content = payload_file.get_content
+            
+            if current_content == "" then return
+            current_content = current_content.replace("""", "")
+            payload = {}
+            payload.id = "payload/" + payload_file.path.split("payloads/")[1].replace(".src", "")
+            payload.file = payload_file
 
-			for index in ["name", "description", "author"]
-				if not payload.hasIndex(index) then
-					payload[index] = "-----"
-				end if
-				payload[index] = (current_content.split("MTXPayload." + index)[1].split("\n")[0].split("=")[1]).trim
-			end for
+            for index in ["name", "description", "author"]
+                if not payload.hasIndex(index) then  payload[index] = "-----"
+                payload[index] = (current_content.split("MTXPayload." + index)[1].split("\n")[0].split("=")[1]).trim
+            end for
 
-			globals.mtx.payloads.push(payload)
-		end for
-	end function
+            globals.mtx.payloads.push(payload)
+        end for
+    end function
 
-	scan_exploits_dir("/usr/share/mtx/exploits")
-	scan_payloads_dir("/usr/share/mtx/payloads")
+    scan_exploits_dir("/usr/share/mtx/exploits")
+    scan_payloads_dir("/usr/share/mtx/payloads")
 
-	if not first_loading then
-		print_good("Exploits and Payloads list reloaded")
-	end if
+    if not first_loading then print_good("Exploits and Payloads list reloaded")
 
 end function
 
 globals.mtx.search = function(params)
-	if params.len < 1 then
-		return print_error("Usage: search <key>")
-	end if
-	return make_table(globals.mtx.exploits, "Exploits", {"id": {"label": "name", "uf": false}, "disclosure_date": {"label": "Disclosure Date"}, "rank": {"label": "Rank"}, "name": {"label": "Description"}}, params)
+    if params.len < 1 then return print_error("Usage: search <key>")
+    return make_table(globals.mtx.exploits, "Exploits", {"id": {"label": "name", "uf": false}, "disclosure_date": {"label": "Disclosure Date"}, "rank": {"label": "Rank"}, "name": {"label": "Description"}}, params)
 end function
 
 globals.mtx.set = function(params, is_g = false)
-	if not is_g and globals.mtx.exploit == null then
-		return print_error("No exploit module charged")
-	end if
+    if not is_g and globals.mtx.exploit == null then return print_error("No exploit module charged")
 
-	if params.len != 2 then
-		return print_error("Usage: set <option> <value>")
-	end if
+    if params.len != 2 then return print_error("Usage: set <option> <value>")
 
-	if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
-		
-		if is_g then
-			return 
-		end if
+    if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
+        
+        if is_g then return
 
-		return print_error(params[0].upper + " => Option not valid for this module")
-	end if
+        return print_error(params[0].upper + " => Option not valid for this module")
+    end if
 
-	if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and params[0].upper == "PAYLOAD" then
-		payload_name = params[1].trim
-		globals.mtx.payload = null
+    if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and params[0].upper == "PAYLOAD" then
+        payload_name = params[1].trim
+        globals.mtx.payload = null
 
-		for raw_payload in globals.mtx.payloads
-			if raw_payload.id == payload_name or (payload_name.to_int == (globals.mtx.payloads.indexOf(raw_payload) + 1)) then
-				globals.mtx.payload = raw_payload
-				params[1] = globals.mtx.payload.id
-				globals.localsession.shell.build(globals.mtx.payload.file.path, "/home/guest")
-				globals.localsession.shell.launch("/home/guest/" + globals.mtx.payload.file.path.split("/")[-1].replace(".src", ""))
-				get_custom_object.MTXExploit.options = get_custom_object.MTXExploit.options + get_custom_object.MTXPayload.options
+        for raw_payload in globals.mtx.payloads
+            if raw_payload.id == payload_name or (payload_name.to_int == (globals.mtx.payloads.indexOf(raw_payload) + 1)) then
+                globals.mtx.payload = raw_payload
+                params[1] = globals.mtx.payload.id
+                globals.localsession.shell.build(globals.mtx.payload.file.path, "/home/guest")
+                globals.localsession.shell.launch("/home/guest/" + globals.mtx.payload.file.path.split("/")[-1].replace(".src", ""))
+                get_custom_object.MTXExploit.options = get_custom_object.MTXExploit.options + get_custom_object.MTXPayload.options
 
-				for i in get_custom_object.MTXPayload.options.indexes
-					get_custom_object.MTXExploit.options[i].selection = get_custom_object.MTXPayload.options[i].default
+                for i in get_custom_object.MTXPayload.options.indexes
+                    get_custom_object.MTXExploit.options[i].selection = get_custom_object.MTXPayload.options[i].default
 
-					if globals.mtx.config.hasIndex(i) then
-						get_custom_object.MTXExploit.options[i].selection = globals.mtx.config[i]
-					end if
-				end for
+                    if globals.mtx.config.hasIndex(i) then
+                        get_custom_object.MTXExploit.options[i].selection = globals.mtx.config[i]
+                    end if
+                end for
 
-				break
-			end if
+                break
+            end if
 
-		end for
+        end for
 
-		if not globals.mtx.payload then
-			return print_error("Error: payload module not found")
-		end if
+        if not globals.mtx.payload then return print_error("Error: payload module not found")
 
-	end if
+    end if
 
-	get_custom_object.MTXExploit.options[params[0].upper].selection = params[1]
-	
-	if not is_g then
-		print(params[0].upper + " => " + params[1])
-	end if
+    get_custom_object.MTXExploit.options[params[0].upper].selection = params[1]
+    
+    if not is_g then print(params[0].upper + " => " + params[1])
 end function
 
 globals.mtx.unset = function(params, is_g = false)
-	if not is_g and globals.mtx.exploit == null then
-		return print_error("No module charged")
-	end if
+    if not is_g and globals.mtx.exploit == null then return print_error("No module charged")
 
-	if params.len != 1 then
-		return print("Usage: unset <option>")
-	end if
+    if params.len != 1 then return print("Usage: unset <option>")
 
-	if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
-		
-		if is_g then
-			return 
-		end if
+    if not get_custom_object.MTXExploit.options.hasIndex(params[0].upper) then
+        
+        if is_g then return
 
-		return print_error(params[0].upper + " => Option not valid for this module")
-	end if
+        return print_error(params[0].upper + " => Option not valid for this module")
+    end if
 
-	get_custom_object.MTXExploit.options[params[0].upper].selection = ""
-	
-	if not is_g then
-		print(params[0].upper + " => removed")
-	end if
+    get_custom_object.MTXExploit.options[params[0].upper].selection = ""
+    
+    if not is_g then print(params[0].upper + " => removed")
 end function
 
 globals.mtx.setg = function(params)
-	if params.len != 2 then
-		return print_error("Usage: setg <option> <value>")
-	end if
+    if params.len != 2 then return print_error("Usage: setg <option> <value>")
 
-	globals.mtx.config[params[0].upper] = params[1]
-	globals.mtx.set([params[0].upper, params[1]], true)
-	print(params[0].upper + " => " + params[1])
+    globals.mtx.config[params[0].upper] = params[1]
+    globals.mtx.set([params[0].upper, params[1]], true)
+    print(params[0].upper + " => " + params[1])
 end function
 
 globals.mtx.unsetg = function(params)
-	if params.len != 1 then
-		return print("Usage: unsetg <option>")
-	end if
+    if params.len != 1 then return print("Usage: unsetg <option>")
 
-	globals.mtx.config[params[0].upper] = ""
-	globals.mtx.unsetg([params[0].upper], true)
-	print(params[0].upper + " => removed")
+    globals.mtx.config[params[0].upper] = ""
+    globals.mtx.unsetg([params[0].upper], true)
+    print(params[0].upper + " => removed")
 end function
 
 globals.mtx.use = function(params)
-	if params.len == 0 then
-		return print("Usage: use <exploit name>")
-	end if
+    if params.len == 0 then return print("Usage: use <exploit name>")
 
-	exploit_name = params[0].trim
-	globals.mtx.exploit = null
+    exploit_name = params[0].trim
+    globals.mtx.exploit = null
 
-	for raw_exploit in globals.mtx.exploits
-		if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit) + 1)) then
-			globals.mtx.exploit = raw_exploit
-			break
-		end if
+    for raw_exploit in globals.mtx.exploits
+        if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit) + 1)) then
+            globals.mtx.exploit = raw_exploit
+            break
+        end if
 
-	end for
+    end for
 
-	if not globals.mtx.exploit then
-		return print_error("Error: " + params[0] + " module not found")
-	end if
+    if not globals.mtx.exploit then return print_error("Error: " + params[0] + " module not found")
 
-	get_custom_object.MTXExploit = {}
-	get_custom_object.MTXExploit.options = {}
-	get_custom_object.MTXPayload = {}
-	get_custom_object.MTXPayload.options = {}
-	globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
-	globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
+    get_custom_object.MTXExploit = {}
+    get_custom_object.MTXExploit.options = {}
+    get_custom_object.MTXPayload = {}
+    get_custom_object.MTXPayload.options = {}
+    globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
+    globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
 
-	if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null then
-		get_custom_object.MTXExploit.options["PAYLOAD"] = {}
-		get_custom_object.MTXExploit.options["PAYLOAD"].selection = ""
-		get_custom_object.MTXExploit.options["PAYLOAD"].default = ""
-		get_custom_object.MTXExploit.options["PAYLOAD"].required = 0
-		get_custom_object.MTXExploit.options["PAYLOAD"].description = "Payload to execute after the exploit"
-	end if
+    if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null then
+        get_custom_object.MTXExploit.options["PAYLOAD"] = {}
+        get_custom_object.MTXExploit.options["PAYLOAD"].selection = ""
+        get_custom_object.MTXExploit.options["PAYLOAD"].default = ""
+        get_custom_object.MTXExploit.options["PAYLOAD"].required = 0
+        get_custom_object.MTXExploit.options["PAYLOAD"].description = "Payload to execute after the exploit"
+    end if
 
-	for i in get_custom_object.MTXExploit.options.indexes
-		get_custom_object.MTXExploit.options[i].selection = get_custom_object.MTXExploit.options[i].default
+    for i in get_custom_object.MTXExploit.options.indexes
+        get_custom_object.MTXExploit.options[i].selection = get_custom_object.MTXExploit.options[i].default
 
-		if globals.mtx.config.hasIndex(i) then
-			get_custom_object.MTXExploit.options[i].selection = globals.mtx.config[i]
-		end if
-	end for
+        if globals.mtx.config.hasIndex(i) then
+            get_custom_object.MTXExploit.options[i].selection = globals.mtx.config[i]
+        end if
+    end for
 
-	print_good("Module " + globals.mtx.exploit.id + " charged")
+    print_good("Module " + globals.mtx.exploit.id + " charged")
 end function
 
 globals.mtx.check = function(params)
-	if globals.mtx.exploit == null then
-		return print_error("No module charged")
-	end if
+    if globals.mtx.exploit == null then return print_error("No module charged")
 
-	options = get_options(get_custom_object.MTXExploit.options)
+    options = get_options(get_custom_object.MTXExploit.options)
 
-	if not options then
-		return 
-	end if
+    if not options then return
 
-	if not get_custom_object.MTXExploit.check(options) then
-		return print_error("The exploit doesn't pass the check.")
-	end if
+    if not get_custom_object.MTXExploit.check(options) then return print_error("The exploit doesn't pass the check.")
 
-	return print_good("Check done! The target seems vulnarable to this exploit")
+    return print_good("Check done! The target seems vulnarable to this exploit")
 end function
 
 globals.mtx.run = function(params)
-	if globals.mtx.exploit == null then
-		return print_error("No module charged")
-	end if
+    if globals.mtx.exploit == null then return print_error("No module charged")
 
-	options = get_options(get_custom_object.MTXExploit.options)
+    options = get_options(get_custom_object.MTXExploit.options)
 
-	if not options then
-		return 
-	end if
+    if not options then return 
 
-	old_n_sessions = globals.sessions.len
-	get_custom_object.MTXExploit.run(options)
+    old_n_sessions = globals.sessions.len
+    get_custom_object.MTXExploit.run(options)
 
-	if globals.sessions.len > old_n_sessions then
-		if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and options["PAYLOAD"] != "" then
-			get_custom_object.MTXPayload.run(globals.session.shell, globals.localsession.shell, options)
-		end if
-		if params.indexOf("-j") != null then return
-		globals.metexpreter.start
-	end if
+    if globals.sessions.len > old_n_sessions then
+        if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null and options["PAYLOAD"] != "" then
+            get_custom_object.MTXPayload.run(globals.session.shell, globals.localsession.shell, options)
+        end if
+        if params.indexOf("-j") != null then return
+        globals.metexpreter.start
+    end if
 
 end function
 
 globals.mtx.show = function(params)
-	if params.len == 0 or ["exploits", "options", "info", "payloads"].indexOf(params[0]) == null then
-		return print("Usage: show <exploits|options|info>")
-	end if
+    if params.len == 0 or ["exploits", "options", "info", "payloads"].indexOf(params[0]) == null then return print("Usage: show <exploits|options|info>")
 
-	if params[0] == "exploits" then
-		return make_table(globals.mtx.exploits, "Exploits", {"id": {"label": "name", "uf": false}, "disclosure_date": {"label": "Disclosure Date"}, "rank": {"label": "Rank"}, "name": {"label": "Description"}})
-	end if
+    if params[0] == "exploits" then
+        return make_table(globals.mtx.exploits, "Exploits", {"id": {"label": "name", "uf": false}, "disclosure_date": {"label": "Disclosure Date"}, "rank": {"label": "Rank"}, "name": {"label": "Description"}})
+    end if
 
-	if params[0] == "payloads" then
-		return make_table(globals.mtx.payloads, "Payloads", {"id": {"label": "name", "uf": false}, "description": {"label": "Description", "uf": false}, "author": {"label": "Author", "uf": false}})
-	end if
+    if params[0] == "payloads" then
+        return make_table(globals.mtx.payloads, "Payloads", {"id": {"label": "name", "uf": false}, "description": {"label": "Description", "uf": false}, "author": {"label": "Author", "uf": false}})
+    end if
 
-	if params[0] == "options" then
-		out = []
+    if params[0] == "options" then
+        out = []
 
-		if globals.mtx.exploit == null then
-			return print_error("No exploit charged")
-		end if
+        if globals.mtx.exploit == null then return print_error("No exploit charged")
 
-		out = [["Name", "Current" + char(160) + "Setting", "Required", "Description"].join(" ")]
-		out.push(["=" * "Name".len, "=" * "Current Setting".len, "=" * "Required".len, "=" * "Description".len].join(" "))
+        out = [["Name", "Current" + char(160) + "Setting", "Required", "Description"].join(" ")]
+        out.push(["=" * "Name".len, "=" * "Current Setting".len, "=" * "Required".len, "=" * "Description".len].join(" "))
 
-		for option in get_custom_object.MTXExploit.options
-			required = "no"
+        for option in get_custom_object.MTXExploit.options
+            required = "no"
 
-			if option.value.required == 1 then
-				required = "yes"
-			end if
+            if option.value.required == 1 then required = "yes"
 
-			out.push([option.key, option.value.selection, required, option.value.description.replace(" ", char(160))].join(" "))
-		end for
+            out.push([option.key, option.value.selection, required, option.value.description.replace(" ", char(160))].join(" "))
+        end for
 
-		return print(format_columns(out.join("\n")))
+        return print(format_columns(out.join("\n")))
 
-	end if
+    end if
 
-	if params[0] == "info" then
-		params.pull
+    if params[0] == "info" then
+        params.pull
 
-		if params.len == 0 then
-			return print("Usage: show info <exploit name>")
-		end if
+        if params.len == 0 then return print("Usage: show info <exploit name>")
 
-		exploit_name = params[0].trim
-		exploit_found = null
+        exploit_name = params[0].trim
+        exploit_found = null
 
-		for raw_exploit in globals.mtx.exploits
-			if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit) + 1)) then
-				exploit_found = raw_exploit
-				break
-			end if
+        for raw_exploit in globals.mtx.exploits
+            if raw_exploit.id == exploit_name or (exploit_name.to_int == (globals.mtx.exploits.indexOf(raw_exploit) + 1)) then
+                exploit_found = raw_exploit
+                break
+            end if
 
-		end for
+        end for
 
-		if exploit_found == null then
-			return print_error("No exploits found ")
-		end if
+        if exploit_found == null then return print_error("No exploits found ")
 
-		print("Exploit info")
-		print("------------")
-		out = []
-		out.push(" Path " + exploit_found.file.path.clean)
-		out.push(" Type " + exploit_found.type.clean)
-		out.push(" Name " + exploit_found.name.clean)
-		out.push(" Rank " + exploit_found.rank.clean)
-		out.push(" " + "Disclosure date".clean + " " + exploit_found.disclosure_date.clean)
-		privileged = "no"
-		
-		if exploit_found.privileged == "1" then
-			privileged = "yes"
-		end if
-		out.push(" Privileged " + privileged)
+        print("Exploit info")
+        print("------------")
+        out = []
+        out.push(" Path " + exploit_found.file.path.clean)
+        out.push(" Type " + exploit_found.type.clean)
+        out.push(" Name " + exploit_found.name.clean)
+        out.push(" Rank " + exploit_found.rank.clean)
+        out.push(" " + "Disclosure date".clean + " " + exploit_found.disclosure_date.clean)
+        privileged = "no"
+        
+        if exploit_found.privileged == "1" then privileged = "yes"
+        out.push(" Privileged " + privileged)
 
-		print(format_columns(out.join("\n")))
+        print(format_columns(out.join("\n")))
 
-		ln
-		print("Description")
-		print("-----------")
-		print(exploit_found.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n------------\n"))
-	end if
+        ln
+        print("Description")
+        print("-----------")
+        print(exploit_found.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n------------\n"))
+    end if
 
 end function
 
 globals.mtx.sessions = function(params)
-	options = {}
-	options["-h"] = {"help": "Help banner", "params": 0, "usage": "-h"}
-	options["-l"] = {"help": "List all active sessions", "params": 0, "usage": "-l"}
-	options["-K"] = {"help": "Terminate all sessions", "params": 0, "usage": "-K"}
-	options["-i"] = {"help": "Interact with the supplied session ID", "params": 1, "usage": "-i <session id>"}
-	options["-k"] = {"help": "Terminate sessions by session ID", "params": 1, "usage": "-k <session id>"}
-	options["-n"] = {"help": "Name or rename a sessions by ID", "params": 2, "usage": "-n <new name> <session id>"}
+    options = {}
+    options["-h"] = {"help": "Help banner", "params": 0, "usage": "-h"}
+    options["-l"] = {"help": "List all active sessions", "params": 0, "usage": "-l"}
+    options["-K"] = {"help": "Terminate all sessions", "params": 0, "usage": "-K"}
+    options["-i"] = {"help": "Interact with the supplied session ID", "params": 1, "usage": "-i <session id>"}
+    options["-k"] = {"help": "Terminate sessions by session ID", "params": 1, "usage": "-k <session id>"}
+    options["-n"] = {"help": "Name or rename a sessions by ID", "params": 2, "usage": "-n <new name> <session id>"}
 
-	if params.len == 0 or params[0] == "-h" then
-		out = []
-		print("Active session manipulation and interaction.")
-		ln
-		print("OPTIONS: ")
-		ln
+    if params.len == 0 or params[0] == "-h" then
+        out = []
+        print("Active session manipulation and interaction.")
+        ln
+        print("OPTIONS: ")
+        ln
 
-		for option in options
-			out.push("  " + option.value.usage.replace(" ", char(160)) + " " + option.value.help.replace(" ", char(160)))
-		end for
+        for option in options
+            out.push("  " + option.value.usage.replace(" ", char(160)) + " " + option.value.help.replace(" ", char(160)))
+        end for
 
-		return print(format_columns(out.join("\n")))
+        return print(format_columns(out.join("\n")))
 
-	end if
+    end if
 
-	option = params[0]
-	params.pull
+    option = params[0]
+    params.pull
 
-	if not options.hasIndex(option) then
-		return print("Invalid option. See -h for available commands")
+    if not options.hasIndex(option) then return print("Invalid option. See -h for available commands")
 
-	end if
+    if options[option].params > params.len then return print("Usage: " + options[option].usage)
 
-	if options[option].params > params.len then
-		return print("Usage: " + options[option].usage)
-	end if
+    if option == "-l" then
+        if globals.sessions.len == 1 then return print_error("No active sessions")
 
-	if option == "-l" then
-		if globals.sessions.len == 1 then
-			return print_error("No active sessions")
-		end if
+        make_table(globals.sessions[1 : ], "Active sessions", {"name": {"label": "Name"}, "information": {"label": "Information"}, "public_ip": {"label": "Public ip"}, "local_ip": {"label": "Lan ip"}})
 
-		make_table(globals.sessions[1 : ], "Active sessions", {"name": {"label": "Name"}, "information": {"label": "Information"}, "public_ip": {"label": "Public ip"}, "local_ip": {"label": "Lan ip"}})
+    end if
 
-	end if
+    if option == "-i" then
+        session_id = params[0].to_int
 
-	if option == "-i" then
-		session_id = params[0].to_int
+        if not globals.sessions.hasIndex(session_id) then return print_error("Invalid session id")
 
-		if not globals.sessions.hasIndex(session_id) then
-			return print_error("Invalid session id")
-		end if
+        globals.session = globals.sessions[session_id]
+        print_info("Starting interation with session " + session_id + "...")
+        globals.metexpreter.start
+    end if
 
-		globals.session = globals.sessions[session_id]
-		print_info("Starting interation with session " + session_id + "...")
-		globals.metexpreter.start
-	end if
+    if option == "-k" then
+        session_id = params[0].to_int
 
-	if option == "-k" then
-		session_id = params[0].to_int
+        if not globals.sessions.hasIndex(session_id) then  return print_error("Invalid session id")
 
-		if not globals.sessions.hasIndex(session_id) then
-			return print_error("Invalid session id")
-		end if
+        arr = []
 
-		arr = []
+        for session in globals.sessions
+            if hash(session) == hash(globals.localsession) or hash(session) == hash(globals.session) then continue
+            arr.push(session)
+        end for
 
-		for session in globals.sessions
-			if hash(session) == hash(globals.localsession) or hash(session) == hash(globals.session) then
-				continue
-			end if
-			arr.push(session)
-		end for
+        globals.sessions = arr
+        globals.session = globals.localsession
+        print_info("Session " + session_id + " closed")
+    end if
 
-		globals.sessions = arr
-		globals.session = globals.localsession
-		print_info("Session " + session_id + " closed")
-	end if
+    if option == "-K" then
+        globals.session = globals.localsession
 
-	if option == "-K" then
-		globals.session = globals.localsession
+        while globals.sessions.len != 1
+            globals.sessions.pop
+        end while
 
-		while globals.sessions.len != 1
-			globals.sessions.pop
-		end while
+        print_good("All sessions terminated")
+    end if
 
-		print_good("All sessions terminated")
-	end if
+    if option == "-n" then
+        name = params[0]
+        session_id = params[1].to_int
 
-	if option == "-n" then
-		name = params[0]
-		session_id = params[1].to_int
+        if not globals.sessions.hasIndex(session_id) then return print_error("Enter a valid session id")
 
-		if not globals.sessions.hasIndex(session_id) then
-			return print_error("Enter a valid session id")
-		end if
-
-		globals.sessions[session_id].name = name
-		print_good("Session " + session_id + " name -> " + name)
-	end if
+        globals.sessions[session_id].name = name
+        print_good("Session " + session_id + " name -> " + name)
+    end if
 
 end function
 
 globals.mtx.scan = function(params)
-	if params.len != 2 then
-		return print("Usage: scan <ip> <port>")
-	end if
+    if params.len != 2 then return print("Usage: scan <ip> <port>")
 
-	target = params[0]
-	port = (params[1] + "").to_int
-	net = metaxploit.net_use(target, port)
+    target = params[0]
+    port = (params[1] + "").to_int
+    net = metaxploit.net_use(target, port)
 
-	if not net then
-		print_error("Unable to connect", target + ":" + port)
-		return 
-	end if
+    if not net then return print_error("Unable to connect", target + ":" + port)
 
-	print_good("Successfully connected!", target + ":" + port)
-	print_info("Dump MetaLib from the targeted service...", target + ":" + port)
-	meta_lib = net.dump_lib
+    print_good("Successfully connected!", target + ":" + port)
+    print_info("Dump MetaLib from the targeted service...", target + ":" + port)
+    meta_lib = net.dump_lib
 
-	if not meta_lib then
-		print_error("Unable to dump the Metalib", target + ":" + port)
-		return 
-	end if
+    if not meta_lib then return print_error("Unable to dump the Metalib", target + ":" + port)
 
-	print_good(["Current MetaLib loaded:", meta_lib.lib_name, "=>", meta_lib.version].join(" "), target + ":" + port)
+    print_good(["Current MetaLib loaded:", meta_lib.lib_name, "=>", meta_lib.version].join(" "), target + ":" + port)
 
-	print_info(["Perform a scan on", meta_lib.lib_name + "..."].join(" "), target + ":" + port)
+    print_info(["Perform a scan on", meta_lib.lib_name + "..."].join(" "), target + ":" + port)
 
-	scan_addresses = metaxploit.scan(meta_lib)
+    scan_addresses = metaxploit.scan(meta_lib)
 
-	if not scan_addresses then
-		print_error("Unable to scan vulnarable memory addresses", target + ":" + port)
-		return 
-	end if
+    if not scan_addresses then return print_error("Unable to scan vulnarable memory addresses", target + ":" + port)
 
-	print_good("Library scan completed successfully!", target + ":" + port)
-	print_good("Vulnerables addresses founds: " + scan_addresses.len, target + ":" + port)
+    print_good("Library scan completed successfully!", target + ":" + port)
+    print_good("Vulnerables addresses founds: " + scan_addresses.len, target + ":" + port)
 
-	for address in scan_addresses
-		scan_variables_results = metaxploit.scan_address(meta_lib, address)
+    for address in scan_addresses
+        scan_variables_results = metaxploit.scan_address(meta_lib, address)
 
-		if not scan_variables_results then
-			print_error("No vulnerabilities founds on address " + address, target + ":" + port)
-			return 
-		end if
+        if not scan_variables_results then return print_error("No vulnerabilities founds on address " + address, target + ":" + port)
 
-		scan_variables_results = scan_variables_results.replace("* ", " Require: ")
-		scan_variables_results = scan_variables_results.split("\n")[2 : ].join(char(10))
-		//print_info(scan_variables_results, target + ":" + port)
-		vulnerabilities = get_exploit_info(scan_variables_results)
+        scan_variables_results = scan_variables_results.replace("* ", " Require: ")
+        scan_variables_results = scan_variables_results.split("\n")[2 : ].join(char(10))
+        //print_info(scan_variables_results, target + ":" + port)
+        vulnerabilities = get_exploit_info(scan_variables_results)
 
-		for vulnerability in vulnerabilities
-			print_info("Vulnerability on " + address + " => " + vulnerability.variable, target + ":" + port)
-			ln
-			overlow = meta_lib.overflow(address, vulnerability.variable)
-			type = typeof(overlow)
+        for vulnerability in vulnerabilities
+            print_info("Vulnerability on " + address + " => " + vulnerability.variable, target + ":" + port)
+            ln
+            overlow = meta_lib.overflow(address, vulnerability.variable)
+            type = typeof(overlow)
 
-			if typeof(overlow) == "null" then
-				type = "generic"
-			end if
+            if typeof(overlow) == "null" then type = "generic"
 
-			if typeof(overlow) == "number" then
-				type = "passwchanger"
-			end if
+            if typeof(overlow) == "number" then type = "passwchanger"
 
-			if port == 0 and typeof(overlow) == "number" then
-				type = "fwshutdown"
-			end if
+            if port == 0 and typeof(overlow) == "number" then type = "fwshutdown"
 
-			if port == 0 and typeof(overlow) == "null" then
-				type = "lanswitcher"
-			end if
+            if port == 0 and typeof(overlow) == "null" then type = "lanswitcher"
 
-			exploit = {}
-			exploit.library = meta_lib.lib_name
-			exploit.version = meta_lib.version
-			exploit.address = address
-			exploit.variable = vulnerability.variable
-			exploit.authentication = "root"
-			exploit.type = type
-			exploit.requirements = vulnerability.requirements
-			exploit.raw_info = vulnerability.raw
-			exploit.name = "exploits/" + compose_exploit_name(exploit)
-			exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace(".src", "")
-			exploit.overflow = overlow
-			ln
-			print_good("Successfully created new exploit: " + exploit.id)
-			ln
-			write_exploit(exploit)
-		end for
+            exploit = {}
+            exploit.library = meta_lib.lib_name
+            exploit.version = meta_lib.version
+            exploit.address = address
+            exploit.variable = vulnerability.variable
+            exploit.authentication = "root"
+            exploit.type = type
+            exploit.requirements = vulnerability.requirements
+            exploit.raw_info = vulnerability.raw
+            exploit.name = "exploits/" + compose_exploit_name(exploit)
+            exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace(".src", "")
+            exploit.overflow = overlow
+            ln
+            print_good("Successfully created new exploit: " + exploit.id)
+            ln
+            write_exploit(exploit)
+        end for
 
-	end for
+    end for
 
 end function
 
 globals.mtx.discover = function(params)
-	limit = 10
 
-	if params.len > 0 then
-		limit = params[0].to_int
-	end if
+    limit = 10
 
-	scan = function()
-		rip = null
-		router = null
-		who = null
-		ports = []
-		print("Search a server with open ports...\n")
-		wait(0.1)
+    if params.len > 0 then  limit = params[0].to_int
 
-		while who == null or router == null or ports.len == 0 or not is_valid_ip(rip)
-			rip = []
-			ports = [0]
+    scan = function()
+        rip = null
+        router = null
+        who = null
+        ports = []
+        print("Search a server with open ports...\n")
+        wait(0.1)
 
-			while rip.len < 4
-				rip.push(floor(rnd * 255) + 1)
-			end while
+        while who == null or router == null or ports.len == 0 or not is_valid_ip(rip)
+            rip = []
+            ports = [0]
 
-			rip = rip.join(".")
-			router = get_router(rip)
-			who = whois(rip)
+            while rip.len < 4
+                rip.push(floor(rnd * 255) + 1)
+            end while
 
-			if not router or not router.used_ports then
-				continue
-			end if
+            rip = rip.join(".")
+            router = get_router(rip)
+            who = whois(rip)
 
-			for port in router.used_ports
-				if not port.is_closed then
-					ports.push(port.port_number)
-				end if
+            if not router or not router.used_ports then  continue
 
-			end for
+            for port in router.used_ports
+                if not port.is_closed then
+                    ports.push(port.port_number)
+                end if
 
-		end while
+            end for
 
-		print("Target found: " + rip + "\n")
-		wait(0.1)
+        end while
 
-		for port in ports
-			print_info("Connection attempt", rip + ":" + port)
-			scan_result = globals.mtx.scan([rip, port])
-		end for
+        print("Target found: " + rip + "\n")
+        wait(0.1)
 
-	end function
+        for port in ports
+            print_info("Connection attempt", rip + ":" + port)
+            scan_result = globals.mtx.scan([rip, port])
+        end for
 
-	n = 0
+    end function
 
-	while n < limit
-		scan
-		n = n + 1
-	end while
+    n = 0
+
+    while n < limit
+        scan
+        n = n + 1
+    end while
 
 end function
 
 globals.mtx.nmap = function(params)
-	if params.len < 1 then
-		return print("Usage: nmap -<options> <ip>")
-	end if
+    if params.len < 1 then  return print("Usage: nmap -<options> <ip>")
 
-	if not is_valid_ip(params[-1]) then
-		return print_error("Invalid ip address")
-	end if
+    if not is_valid_ip(params[-1]) then return print_error("Invalid ip address")
 
-	if not globals.localsession.computer.is_network_active then
-		return print_error("No internet access")
-	end if
+    if not globals.localsession.computer.is_network_active then return print_error("No internet access")
 
-	ip_address = params[-1]
-	router = get_router
-	is_router = get_router(ip_address)
-	is_switch = get_switch(ip_address)
+    ip_address = params[-1]
+    router = get_router
+    is_router = get_router(ip_address)
+    is_switch = get_switch(ip_address)
 
-	if router == null then
-		return print_error("IP address not found")
-	end if
+    if router == null then return print_error("IP address not found")
 
-	ports = null
+    ports = null
 
-	if is_lan_ip(ip_address) then
-		ports = router.device_ports(ip_address)
-	else
-		ports = is_router.used_ports
-	end if
+    if is_lan_ip(ip_address) then
+        ports = router.device_ports(ip_address)
+    else
+        ports = is_router.used_ports
+    end if
 
-	if ports == null then
-		return print_error("IP address not found")
-	end if
+    if ports == null then return print_error("IP address not found")
 
-	if typeof(ports) == "string" then
-		return print_error(ports.split(": ")[1])
-	end if
+    if typeof(ports) == "string" then  return print_error(ports.split(": ")[1])
 
-	local_ip = router.local_ip
-	kernel_version = router.kernel_version
+    local_ip = router.local_ip
+    kernel_version = router.kernel_version
 
-	if is_router then
-		local_ip = is_router.local_ip
-		kernel_version = is_router.kernel_version
-	else
-		subnet = ip_address.split(".")[0 : -1].join(".")
-		is_router = null
+    if is_router then
+        local_ip = is_router.local_ip
+        kernel_version = is_router.kernel_version
+    else
+        subnet = ip_address.split(".")[0 : -1].join(".")
+        is_router = null
 
-		for i in range(1, 255)
-			is_router = get_router(subnet + "." + i)
-			
-			if is_router then
-				break
-			end if
-		end for
+        for i in range(1, 255)
+            is_router = get_router(subnet + "." + i)
+            
+            if is_router then
+                break
+            end if
+        end for
 
-		local_ip = is_router.local_ip
-		kernel_version = is_router.kernel_version
-	end if
+        local_ip = is_router.local_ip
+        kernel_version = is_router.kernel_version
+    end if
 
-	if is_router then
-		type = "Router"
+    if is_router then
+        type = "Router"
 
-		if is_switch then
-			type = "Switch"
-		end if
+        if is_switch then
+            type = "Switch"
+        end if
 
-		print_info("Gateway type:" + " " + type, "Nmap")
-		print_info(type + " IP:" + " " + local_ip, "Nmap")
-		print_info(type + " version:" + " " + kernel_version, "Nmap")
+        print_info("Gateway type:" + " " + type, "Nmap")
+        print_info(type + " IP:" + " " + local_ip, "Nmap")
+        print_info(type + " version:" + " " + kernel_version, "Nmap")
 
-		if is_router.firewall_rules.len != 0 then
-			print_info("Firewall rules:", "Nmap")
-			print_info("  " + is_router.firewall_rules.join("\n  "), "Nmap")
-		else
-			print_good("No firewall rules", "Nmap")
-		end if
+        if is_router.firewall_rules.len != 0 then
+            print_info("Firewall rules:", "Nmap")
+            print_info("  " + is_router.firewall_rules.join("\n  "), "Nmap")
+        else
+            print_good("No firewall rules", "Nmap")
+        end if
 
-	end if
+    end if
 
-	if (ports.len == 0) then
-		return print_error("No open ports")
-	end if
+    if (ports.len == 0) then return print_error("No open ports")
 
-	info = "PORT STATE SERVICE VERSION LAN"
-	ports.sort("port_number")
+    info = "PORT STATE SERVICE VERSION LAN"
+    ports.sort("port_number")
 
-	for port in ports
-		if is_router then
-			service_info = is_router.port_info(port)
-		else
-			service_info = router.port_info(port)
-		end if
+    for port in ports
+        if is_router then
+            service_info = is_router.port_info(port)
+        else
+            service_info = router.port_info(port)
+        end if
 
-		lan_ips = port.get_lan_ip
-		port_status = "open"
+        lan_ips = port.get_lan_ip
+        port_status = "open"
 
-		if (port.is_closed) then
-			port_status = "closed"
-		end if
+        if (port.is_closed) then
+            port_status = "closed"
+        end if
 
-		if port_status == "closed" then
-			print_error("Discovered closed port " + port.port_number, "Nmap")
-			continue
-		end if
+        if port_status == "closed" then
+            print_error("Discovered closed port " + port.port_number, "Nmap")
+            continue
+        end if
 
-		print_good("Discovered open port " + port.port_number, "Nmap")
-		print_good("Port " + port.port_number + " respond with service " + service_info + " on lan " + lan_ips, "Nmap")
-		//info = info + "\n" + port.port_number + " " + port_status + " " + service_info + " " + lan_ips
-	end for
+        print_good("Discovered open port " + port.port_number, "Nmap")
+        print_good("Port " + port.port_number + " respond with service " + service_info + " on lan " + lan_ips, "Nmap")
+        //info = info + "\n" + port.port_number + " " + port_status + " " + service_info + " " + lan_ips
+    end for
 
-	if params.join(" ").indexOf("--script vuln") == null then
-		return 
-	end if
+    if params.join(" ").indexOf("--script vuln") == null then return 
 
-	print_info("Scanning ports to find working exploits", "Nmap")
+    print_info("Scanning ports to find working exploits", "Nmap")
 
-	for port in ports
-		if port.is_closed then
-			print_error("Port closed. Skipped", "Nmap - " + ip_address + ":" + port.port_number)
-			continue
-		end if
+    for port in ports
+        if port.is_closed then
+            print_error("Port closed. Skipped", "Nmap - " + ip_address + ":" + port.port_number)
+            continue
+        end if
 
-		port = port.port_number
-		print_info("Scanning port " + port, "Nmap - " + ip_address + ":" + port)
-		net = metaxploit.net_use(ip_address, port)
+        port = port.port_number
+        print_info("Scanning port " + port, "Nmap - " + ip_address + ":" + port)
+        net = metaxploit.net_use(ip_address, port)
 
-		if not net then
-			print_error("Unable to connect to port " + port, "Nmap - " + ip_address + ":" + port)
-			continue
-		end if
+        if not net then
+            print_error("Unable to connect to port " + port, "Nmap - " + ip_address + ":" + port)
+            continue
+        end if
 
-		lib = net.dump_lib
-		print_good("Founded " + lib.lib_name + " " + lib.version, "Nmap - " + ip_address + ":" + port)
-		service = lib.lib_name.replace(".so", "").replace("lib", "").trim
-		version = lib.version.replace(".", "")
+        lib = net.dump_lib
+        print_good("Founded " + lib.lib_name + " " + lib.version, "Nmap - " + ip_address + ":" + port)
+        service = lib.lib_name.replace(".so", "").replace("lib", "").trim
+        version = lib.version.replace(".", "")
 
-		print_info("Searching exploits for " + service + " service", "Nmap - " + ip_address + ":" + port)
+        print_info("Searching exploits for " + service + " service", "Nmap - " + ip_address + ":" + port)
 
-		founded_exploits = []
+        founded_exploits = []
 
-		for exploit in globals.mtx.exploits
-			if exploit.id.indexOf(service) != null and exploit.id.indexOf(version) != null then
-				print_good("	Exploit found: " + exploit.id, "Nmap - " + ip_address + ":" + port)
-				founded_exploits.push(exploit)
-			end if
+        for exploit in globals.mtx.exploits
+            if exploit.id.indexOf(service) != null and exploit.id.indexOf(version) != null then
+                print_good("	Exploit found: " + exploit.id, "Nmap - " + ip_address + ":" + port)
+                founded_exploits.push(exploit)
+            end if
 
-		end for
+        end for
 
-		if founded_exploits.len > 0 then
-			print_good("Target service is vulnarable to " + founded_exploits.len + " exploits!", "Nmap - " + ip_address + ":" + port)
-		else
-			print_error("No exploits found for this service", "Nmap - " + ip_address + ":" + port)
+        if founded_exploits.len > 0 then
+            print_good("Target service is vulnarable to " + founded_exploits.len + " exploits!", "Nmap - " + ip_address + ":" + port)
+        else
+            print_error("No exploits found for this service", "Nmap - " + ip_address + ":" + port)
 
-		end if
+        end if
 
-	end for
+    end for
 
 end function
 
 globals.mtx.connect = function(params)
-	if params.len == 0 then
-		return print("Usage: connect <ip>:<port>")
-	end if
+    if params.len == 0 then return print("Usage: connect <ip>:<port>")
 
-	sp = params[0].split(":")
+    sp = params[0].split(":")
 
-	if sp.len != 2 then
-		return print("Usage: connect <ip>:<port>")
-	end if
+    if sp.len != 2 then return print("Usage: connect <ip>:<port>")
 
-	ip = sp[0]
-	port = sp[1].to_int
-	user = null
-	pass = null
+    ip = sp[0]
+    port = sp[1].to_int
+    user = null
+    pass = null
 
-	while user == null
-		user = user_input("username: ")
-	end while
+    while user == null
+        user = user_input("username: ")
+    end while
 
-	while pass == null
-		pass = user_input("password: ", true)
-	end while
+    while pass == null
+        pass = user_input("password: ", true)
+    end while
 
-	print_info("Attempt to connect to " + ip + ":" + port + "...")
-	result = globals.localsession.shell.connect_service(ip, port, user, pass, "ssh")
+    print_info("Attempt to connect to " + ip + ":" + port + "...")
+    result = globals.localsession.shell.connect_service(ip, port, user, pass, "ssh")
 
-	if typeof(result) == "string" then
-		return print_error(result)
-	end if
+    if typeof(result) == "string" then return print_error(result)
 
-	if not result then
-		return print_error("Connection failed!")
-	end if
+    if not result then return print_error("Connection failed!")
 
-	print_good("Connected!")
-	register_session(result)
+    print_good("Connected!")
+    register_session(result)
 end function
 
 globals.mtx.cd = function(params)
-	if params.len == 0 then
-		return print("Usage: cd <dir>")
-	end if
+    if params.len == 0 then return print("Usage: cd <dir>")
 
-	new_dir = get_directory(globals.localsession.shell, params[0], true)
+    new_dir = get_file(globals.localsession.shell, params[0], true)
 
-	if typeof(new_dir) == "string" then
-		return print_error(new_dir)
-	end if
+    if typeof(new_dir) == "string" then return print_error(new_dir)
 
-	globals.localsession.pwd = new_dir.path
-	print_good("Local path -> " + new_dir.path)
-	return globals.localsession.pwd
+    globals.localsession.pwd = new_dir.path
+    print_good("Local path -> " + new_dir.path)
+    return globals.localsession.pwd
 end function
 
 globals.mtx["new"] = function(params)
-	
-	if params.len < 1 then
-		return print("Usage: new <explpoit|payload>")
-	end if
-	file_name = md5(current_date)[0 : 6]
+    
+    if params.len < 1 then return print("Usage: new <explpoit|payload>")
 
-	if params[0] == "exploit" then
-		exploit_example_path = "/usr/share/mtx/exploits/custom/" + "exploit_" + file_name + ".src"
-		write_file(globals.localsession, exploit_example_path, get_exploit_example)
-		print_info("New exploit example created -> " + exploit_example_path)
-		return 
-	end if
+    file_name = md5(current_date)[0 : 6]
 
-	if params[0] == "payload" then
-		payload_example_path = "/usr/share/mtx/payloads/" + "payload_" + file_name + ".src"
-		write_file(globals.localsession, payload_example_path, get_payload_example)
-		print_info("New payload example created -> " + payload_example_path)
-		return 
-	end if
+    if params[0] == "exploit" then
+        exploit_example_path = "/usr/share/mtx/exploits/custom/" + "exploit_" + file_name + ".src"
+        write_file(globals.localsession, exploit_example_path, get_exploit_example)
+        print_info("New exploit example created -> " + exploit_example_path)
+        return 
+    end if
+
+    if params[0] == "payload" then
+        payload_example_path = "/usr/share/mtx/payloads/" + "payload_" + file_name + ".src"
+        write_file(globals.localsession, payload_example_path, get_payload_example)
+        print_info("New payload example created -> " + payload_example_path)
+        return 
+    end if
 
 end function
 
 globals.mtx.netscan = function(params)
-	ns_code = []
-	ns_code.push("router = get_router")
-	ns_code.push("out = []")
-	ns_code.push("out.push([""Device IP"".replace("" "", char(160)) ,""Gateway"", ""Gateway type"".replace("" "", char(160)), ""Bssid"", ""Essid"", ""Firewall"", ""Ping status"".replace("" "", char(160))].join("" ""))")
-	ns_code.push("out.push([""---------"", ""-------"", ""------------"", ""-----"", ""-----"", ""--------"", ""-----------""].join("" ""))")
+    if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
+    ns_code = []
+    ns_code.push("router = get_router")
+    ns_code.push("out = []")
+    ns_code.push("out.push([""Device IP"".replace("" "", char(160)) ,""Gateway"", ""Gateway type"".replace("" "", char(160)), ""Bssid"", ""Essid"", ""Firewall"", ""Ping status"".replace("" "", char(160))].join("" ""))")
+    ns_code.push("out.push([""---------"", ""-------"", ""------------"", ""-----"", ""-----"", ""--------"", ""-----------""].join("" ""))")
 
-	ns_code.push("for ip in router.devices_lan_ip")
+    ns_code.push("for ip in router.devices_lan_ip")
 
-	ns_code.push("sub_router = get_router(ip)")
-	ns_code.push("is_switch  = get_switch(ip)")
+    ns_code.push("sub_router = get_router(ip)")
+    ns_code.push("is_switch  = get_switch(ip)")
 
-	ns_code.push("if not sub_router then continue	")
+    ns_code.push("if not sub_router then continue	")
 
-	ns_code.push("gateway_type = ""Device""")
+    ns_code.push("gateway_type = ""Device""")
 
-	ns_code.push("if not is_switch then gateway_type = ""Router""")
+    ns_code.push("if not is_switch then gateway_type = ""Router""")
 
-	ns_code.push("if is_switch then gateway_type = ""Switch""")
+    ns_code.push("if is_switch then gateway_type = ""Switch""")
 
-	ns_code.push("for sub_device in sub_router.devices_lan_ip")
+    ns_code.push("for sub_device in sub_router.devices_lan_ip")
 
-	ns_code.push("if sub_router.local_ip == sub_device or sub_device.indexOf(sub_router.local_ip.split(""."")[0:-1].join(""."")) == null then continue")
+    ns_code.push("if sub_router.local_ip == sub_device or sub_device.indexOf(sub_router.local_ip.split(""."")[0:-1].join(""."")) == null then continue")
 
-	ns_code.push("type = ""successful""")
+    ns_code.push("type = ""successful""")
 
-	ns_code.push("if is_switch then type = ""<color=#FF3A3A>unreachable</color>""")
+    ns_code.push("if is_switch then type = ""<color=#FF3A3A>unreachable</color>""")
 
-	ns_code.push("if sub_router.firewall_rules.len > 0 and sub_router.firewall_rules.indexOf(""DENY Any Any Any"") != null then fw = ""enabled"" else fw = ""disabled""")
+    ns_code.push("if sub_router.firewall_rules.len > 0 and sub_router.firewall_rules.indexOf(""DENY Any Any Any"") != null then fw = ""enabled"" else fw = ""disabled""")
 
-	ns_code.push("out.push([sub_device, sub_router.local_ip, (gateway_type + "" "" + sub_router.kernel_version).replace("" "", char(160)), sub_router.bssid_name, sub_router.essid_name, fw, type].join("" ""))")
+    ns_code.push("out.push([sub_device, sub_router.local_ip, (gateway_type + "" "" + sub_router.kernel_version).replace("" "", char(160)), sub_router.bssid_name, sub_router.essid_name, fw, type].join("" ""))")
 
-	ns_code.push("end for")
+    ns_code.push("end for")
 
-	ns_code.push("end for")
+    ns_code.push("end for")
 
-	ns_code.push("print(format_columns(out.join(""\n"")))")
+    ns_code.push("print(format_columns(out.join(""\n"")))")
 
-	ns_code = ns_code.join("\n")
-	write_file(globals.session, "/home/guest/netscan.src", ns_code)
-	globals.session.shell.build("/home/guest/netscan.src", "/home/guest")
-	globals.session.shell.launch("/home/guest/netscan")
+    ns_code = ns_code.join("\n")
+    write_file(globals.session, "/home/guest/netscan.src", ns_code)
+    globals.session.shell.build("/home/guest/netscan.src", "/home/guest")
+    globals.session.shell.launch("/home/guest/netscan")
 end function
 
 globals.mtx.help = function(params)
-	print("Core Commands")
-	print("-------------")
-	ln
-	print("   Command      Description")
-	print("   -------      -----------")
-	print("   ?            Help menu")
-	print("   cd           Change the current working directory")
-	print("   connect      Communicate with an ssh host")
-	print("   exit         Exit the console")
-	print("   help         Help menu")
+    print("Core Commands")
+    print("-------------")
+    ln
+    print("   Command      Description")
+    print("   -------      -----------")
+    print("   ?            Help menu")
+    print("   cd           Change the current working directory")
+    print("   connect      Communicate with an ssh host")
+    print("   exit         Exit the console")
+    print("   help         Help menu")
 
-	print("   info         Displays information about one or more modules")
+    print("   info         Displays information about one or more modules")
 
-	print("   quit         Exit the console")
-	print("   reload       Reloads all modules from all defined module paths")
-	print("   search       Searches module names and descriptions")
+    print("   quit         Exit the console")
+    print("   reload       Reloads all modules from all defined module paths")
+    print("   search       Searches module names and descriptions")
 
-	print("   sessions     Dump session listings and display information about sessions")
+    print("   sessions     Dump session listings and display information about sessions")
 
-	print("   set          Sets a context-specific variable to a value")
+    print("   set          Sets a context-specific variable to a value")
 
-	print("   setg         Sets a global variable to a value")
-	print("   show         Displays modules of a given type, or all modules")
+    print("   setg         Sets a global variable to a value")
+    print("   show         Displays modules of a given type, or all modules")
 
-	print("   unset        Unsets one or more context-specific variables")
+    print("   unset        Unsets one or more context-specific variables")
 
-	print("   unsetg       Unsets one or more global variables")
-	print("   use          Selects a module by name")
-	print("   nmap         Scan the target to get router info, firewall rules and info about target ports")
-	print("   discover     Scan the globe with random IPs and write the exploits localy")
+    print("   unsetg       Unsets one or more global variables")
+    print("   use          Selects a module by name")
+    print("   nmap         Scan the target to get router info, firewall rules and info about target ports")
+    print("   discover     Scan the globe with random IPs and write the exploits localy")
 
-	print("   scan         Scan target port and if vulnerable write the exploits localy")
+    print("   scan         Scan target port and if vulnerable write the exploits localy")
 
-	print("   new          Generate new template example module")
-	print("   install      Install a service on the victim machine")
+    print("   new          Generate new template example module")
+    print("   install      Install a service on the victim machine")
 end function
 
 globals.mtx["?"] = @globals.mtx.help
 
 globals.mtx.exit = function(params = [])
-	exit
+    exit
 end function
 
 globals.mtx.quit = @globals.mtx.exit
@@ -1871,705 +1586,628 @@ globals.mtx.quit = @globals.mtx.exit
 globals.metexpreter = {}
 
 globals.metexpreter.start = function(params = [])
-	ln
+    ln
 
-	while hash(globals.session) != hash(globals.localsession)
-		command = user_input("metexpreter > ").trim
-		command_params = command.split(" ")
-		command = command_params[0]
-		command_arguments = []
+    while hash(globals.session) != hash(globals.localsession)
+        command = user_input("metexpreter > ").trim
+        command_params = command.split(" ")
+        command = command_params[0]
+        command_arguments = []
 
-		if command_params.len > 1 then
-			command_arguments = command_params[1 : ]
-		end if
+        if command_params.len > 1 then command_arguments = command_params[1 : ]
 
-		if globals.metexpreter.hasIndex(command) then
-			ln
-			globals.metexpreter[command](command_arguments)
-			ln
-			continue
-		end if
+        if globals.metexpreter.hasIndex(command) then
+            ln
+            globals.metexpreter[command](command_arguments)
+            ln
+            continue
+        end if
 
-	end while
+    end while
 end function
 
 globals.metexpreter.background = function(params = [])
-	print_info("Session is now in background")
-	globals.session = globals.localsession
+    print_info("Session is now in background")
+    globals.session = globals.localsession
 end function
 
 globals.metexpreter.exit = function(params = [])
-	arr = []
-	session_now = [globals.session.local_ip, globals.session.public_ip, globals.session.type, globals.session.user]
+    arr = []
+    session_now = [globals.session.local_ip, globals.session.public_ip, globals.session.type, globals.session.user]
 
-	for session in globals.sessions
-		session_old = [session.local_ip, session.public_ip, session.type, session.user]
+    for session in globals.sessions
+        session_old = [session.local_ip, session.public_ip, session.type, session.user]
 
-		if hash(session_now) == hash(session_old) then
-			continue
-		end if
+        if hash(session_now) == hash(session_old) then continue
 
-		arr.push(session)
-	end for
+        arr.push(session)
+    end for
 
-	globals.sessions = arr
-	globals.session = globals.localsession
-	print_info("Session closed")
+    globals.sessions = arr
+    globals.session = globals.localsession
+    print_info("Session closed")
 end function
 
 globals.metexpreter.quit = @globals.metexpreter.exit
 
 globals.metexpreter.help = function(params)
-	print("Core Commands")
-	print("-------------")
-	ln
-	print("   Command      Description")
-	print("   ?            Help menu")
-	print("   background   Moves the current session to the background")
-	print("   exit         Terminates a meterpreter session")
-	print("   help         Help menu")
-	print("   quit         Terminates the meterpreter session")
-	print("   write        Open a write session")
-	print("   cat          Read and output to stdout the contents of a file")
-	print("   cd           Change directory on the victim")
-	print("   del          Delete a file on the victim")
-	print("   download     Download a file from the victim system to the attacker system")
-	print("   getlwd       Print the local directory")
-	print("   getwd        Print working directory")
-	print("   lcd          Change local directory")
-	print("   lpwd         Print local directory")
-	print("   ls           List files in current directory")
-	print("   mkdir        Make a directory on the victim system")
-	print("   pwd          Print working directory")
-	print("   rm           Delete a file")
-	print("   rmdir        Remove directory on the victim system")
-	print("   upload       Upload a file from the attacker system to the victim")
+    print("Core Commands")
+    print("-------------")
+    ln
+    print("   Command      Description")
+    print("   ?            Help menu")
+    print("   background   Moves the current session to the background")
+    print("   exit         Terminates a meterpreter session")
+    print("   help         Help menu")
+    print("   quit         Terminates the meterpreter session")
+    print("   write        Open a write session")
+    print("   cat          Read and output to stdout the contents of a file")
+    print("   cd           Change directory on the victim")
+    print("   del          Delete a file on the victim")
+    print("   download     Download a file from the victim system to the attacker system")
+    print("   getlwd       Print the local directory")
+    print("   getwd        Print working directory")
+    print("   lcd          Change local directory")
+    print("   lpwd         Print local directory")
+    print("   ls           List files in current directory")
+    print("   mkdir        Make a directory on the victim system")
+    print("   pwd          Print working directory")
+    print("   rm           Delete a file")
+    print("   rmdir        Remove directory on the victim system")
+    print("   upload       Upload a file from the attacker system to the victim")
 
-	print("   ipconfig     Displays network interfaces with key information including IP address, etc.")
+    print("   ipconfig     Displays network interfaces with key information including IP address, etc.")
 
-	print("   execute      Executes a /bin command")
-	print("   getuid       Get the user that the server is running as")
-	print("   kill         Terminate the process designated by the PID")
-	print("   ps           List running processes")
-	print("   shell        Opens a command shell on the victim machine")
-	print("   getsystem    Try to gain sysadmin privileges")
-	print("   hashdump     Find and grab the hashes on entire filesystem")
-	print("   switch       Upload mtx, metaxploit and crypto and execute mtx on vicitm machine")
+    print("   execute      Executes a /bin command")
+    print("   getuid       Get the user that the server is running as")
+    print("   kill         Terminate the process designated by the PID")
+    print("   ps           List running processes")
+    print("   shell        Opens a command shell on the victim machine")
+    print("   getsystem    Try to gain sysadmin privileges")
+    print("   hashdump     Find and grab the hashes on entire filesystem")
+    print("   switch       Upload mtx, metaxploit and crypto and execute mtx on vicitm machine")
 end function
 
 globals.metexpreter.cat = function(params)
-	if params.len == 0 then
-		return ("Usage: cat <file path>")
-	end if
+    if params.len == 0 then return print("Usage: cat <file path>")
 
-	cat_file_path = params[0]
+    cat_file = get_file(globals.session.shell, params[0], true)
 
-	if params[0][0] != "/" then
-		cat_file_path = globals.session.pwd + "/" + params[0]
-	end if
+    if typeof(cat_file) == "string" then return print_error(cat_file)
 
-	cat_file = get_file(globals.session.shell, cat_file_path, true)
+    if cat_file.is_folder then return print_error(cat_file.path + " -> file is a folder")
 
-	if typeof(cat_file) == "string" then
-		return print_error(cat_file)
-	end if
+    if cat_file.is_binary then return print_error(cat_file.path + " -> file is a binary")
 
-	if cat_file.is_binary then
-		return print_error(cat_file.path + " is a binary")
-	end if
+    content = cat_file.get_content
 
-	cat_content = cat_file.get_content.replace(char(10), "\n")
-	print(cat_content.trim)
-	return cat_content
+    if not content then return print_error(cat_file.path + " -> unable to read")
+
+    cat_content = content.replace(char(10), "\n").trim
+    print(cat_content)
+    return cat_content
 end function
 
 globals.metexpreter.cd = function(params)
-	if params.len == 0 then
-		return print("Usage: cd <dir>")
-	end if
+    if params.len == 0 then return print("Usage: cd <dir>")
 
-	new_dir = get_directory(globals.session.shell, params[0], true)
+    new_dir = get_file(globals.session.shell, params[0], true)
 
-	if typeof(new_dir) == "string" then
-		return print_error(new_dir)
-	end if
+    if typeof(new_dir) == "string" then return print_error(new_dir)
 
-	globals.session.pwd = new_dir.path
-	print_good("Session path -> " + new_dir.path)
-	return globals.session.pwd
+    if not new_dir.is_folder then return print_error(new_dir.path + " -> is a file")
+
+    globals.session.pwd = new_dir.path
+    print_good("Session path -> " + new_dir.path)
+    return globals.session.pwd
 end function
 
+globals.metexpreter.chmod = function(params)
+    if params.len < 2 then return print("Usage: chmod <permissions> <path>")
+
+    file_to_chmod = get_file(globals.session.shell, params[1])
+    if typeof(file_to_chmod) != "file" then return print_error(file_to_chmod)
+    result = file_to_chmod.chmod(params[0], true)
+
+    if typeof(result) == "string" then return print_error(result)
+
+    print_good(params[1] + " -> " + params[0])
+
+end function
+
+
 globals.metexpreter.del = function(params)
-	if params.len == 0 then
-		return print("Usage: del <file path>")
-	end if
+    if params.len == 0 then return print("Usage: del <path>")
 
-	file_to_delete = get_directory(globals.session.shell, params[0], true)
+    file_to_delete = get_file(globals.session.shell, params[0], true)
 
-	if not file_to_delete or typeof(file_to_delete) == "string" then 
-		file_to_delete = get_file(globals.session.shell, params[0], true)
-		if not file_to_delete or file_to_delete == "string" then return print_error(params[0] + " -> unable to delete")
-	end if
+    if not file_to_delete then return print_error(params[0] + " -> unable to delete")
 
-	del = file_to_delete.remove
-	if not del or typeof(del) == "string" then return print_error(del)
-	print_good("" + file_to_delete.path + " -> Deleted")
+    if typeof(file_to_delete) == "string" then return print_error(file_to_delete)
+
+    file_to_delete.delete
+
+    print_good("" + file_to_delete.path + " -> Deleted")
+
 end function
 
 globals.metexpreter.rm = @globals.metexpreter.del
 
 globals.metexpreter.download = function(params)
-	if globals.session.type != "shell" then
-		return print_error("Only shell sessions can perform this command")
+    if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
 
-	end if
+    if params.len == 0 then return print("Usage: download <file path>")
 
-	if params.len == 0 then
-		return print("Usage: download <file path>")
-	end if
+    if params[0][0] != "/" then  params[0] = globals.session.pwd + "/" + params[0]
 
-	if params[0].indexOf("/") == null then
-		params[0] = globals.session.pwd + "/" + params[0]
-	end if
+    file_to_download = get_file(globals.session.shell, params[0], true)
 
-	file_to_download = get_file(globals.session.shell, params[0], true)
+    if typeof(file_to_download) == "string" then return print_error(file_to_download)
 
-	if typeof(file_to_download) == "string" then
-		return print_error(file_to_download)
-	end if
+    globals.session.shell.scp(file_to_download.path, globals.localsession.pwd, globals.localsession.shell)
 
-	globals.session.shell.scp(file_to_download.path, globals.localsession.pwd, globals.localsession.shell)
-	downloaded_file = get_file(globals.localsession.shell, globals.localsession.pwd + "/" + file_to_download.name)
-	ln
+    downloaded_file = get_file(globals.localsession.shell, globals.localsession.pwd + "/" + file_to_download.name)
 
-	if typeof(downloaded_file) == "file" then
-		downloaded_file.set_owner(globals.localsession.user)
-		downloaded_file.set_group(globals.localsession.user)
-	end if
+    ln
 
-	print_good(file_to_download.path + " -> " + globals.localsession.pwd + "/" + file_to_download.name)
+    if typeof(downloaded_file) == "file" then
+        downloaded_file.set_owner(globals.localsession.user)
+        downloaded_file.set_group(globals.localsession.user)
+    end if
+
+    print_good(file_to_download.path + " -> " + globals.localsession.pwd + "/" + file_to_download.name)
+end function
+
+globals.metexpreter.upload = function(params)
+    if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
+
+    if params.len == 0 then return print("Usage: upload <file path>")
+
+    if params[0][0] != "/" then params[0] = globals.localsession.pwd + "/" + params[0]
+
+    file_to_upload = get_file(globals.localsession.shell, params[0], true)
+
+    if typeof(file_to_upload) == "string" then return print_error(file_to_upload)
+
+    globals.localsession.shell.scp(file_to_upload.path, globals.session.pwd, globals.session.shell)
+    uploaded_file = get_file(globals.session.shell, globals.session.pwd + "/" + file_to_upload.name)
+    ln
+
+    if typeof(uploaded_file) == "file" then
+        uploaded_file.set_owner(globals.session.user)
+        uploaded_file.set_group(globals.session.user)
+    end if
+
+    print_good(file_to_upload.path + " -> " + globals.session.pwd + "/" + file_to_upload.name)
 end function
 
 globals.metexpreter.pwd = function(params)
-	print_info("Session path: " + globals.session.pwd)
-	return globals.session.pwd
+    print_info("Session path: " + globals.session.pwd)
+    return globals.session.pwd
 end function
 
 globals.metexpreter.getwd = @globals.metexpreter.pwd
 
 globals.metexpreter.lpwd = function(params)
-	print_info("Local path: " + globals.localsession.pwd)
-	return globals.localsession.pwd
+    print_info("Local path: " + globals.localsession.pwd)
+    return globals.localsession.pwd
 end function
 
 globals.metexpreter.getlwd = @globals.metexpreter.lpwd
 
 globals.metexpreter.lcd = function(params)
-	if params.len == 0 then
-		return print("Usage: lcd <local dir>")
-	end if
+    if params.len == 0 then return print("Usage: lcd <local dir>")
 
-	new_dir = get_directory(globals.localsession.shell, params[0], true)
+    new_dir = get_file(globals.localsession.shell, params[0], true)
 
-	if typeof(new_dir) == "string" then
-		return print_error(new_dir)
-	end if
+    if typeof(new_dir) == "string" then return print_error(new_dir)
 
-	globals.localsession.pwd = new_dir.path
-	print_good("Local path -> " + new_dir.path)
-	return globals.localsession.pwd
+    globals.localsession.pwd = new_dir.path
+    print_good("Local path -> " + new_dir.path)
+    return globals.localsession.pwd
 end function
 
 globals.metexpreter.mkdir = function(params)
-	if globals.session.type == "file" then
-		return print_error("Only shell and computer sessions can perform this command")
+    if globals.session.type == "file" then return print_error("Only shell and computer sessions can perform this command")
 
-	end if
+    if params.len == 0 then return print("Usage: mkdir <new directory path>")
 
-	if params.len == 0 then
-		return print("Usage: mkdir <new directory path>")
-	end if
+    path = params[0]
 
-	folder_path = params[0].split("/")[0 : -1].join("/")
-	folder_name = params[0].split("/")[-1]
-	folder = get_directory(globals.session.shell, folder_path, true)
+    if path[0] != "/" then path = session.pwd + "/" + path
 
-	if typeof(folder) == "string" then
-		return print_error(folder)
-	end if
+    folder_path = path.split("/")[0 : -1].join("/")
+    folder_name = path.split("/")[-1]
 
-	result = globals.session.computer.create_folder(folder_path, folder_name)
-	folder = get_directory(globals.session.shell, folder_path + "/" + folder_name, true)
-	print_good("New session directory created -> " + folder.path)
+    result = globals.session.computer.create_folder(folder_path, folder_name)
+    if typeof(result) == "string" then return print_error(path + " -> " + result)
+    folder = get_file(globals.session.shell, folder_path, true)
+    if typeof(folder) != "file" then return print_error(path + " -> unable to create folder in this position")
+    print_good("New session directory created -> " + folder.path)
 end function
 
 globals.metexpreter.ls = function(params, search = "")
-	out = []
-	start_dir = globals.session.pwd
+    out = []
+    start_dir = globals.session.pwd
 
-	if params.len > 0 then
-		start_dir = params[0]
-	end if
+    if params.len > 0 then
+        start_dir = params[0]
+    end if
 
-	scan_dir = function(dir, start = false)
-		start_dir = get_directory(globals.session.shell, dir, true)
+    scan_dir = function(dir, start = false)
+        start_dir = get_file(globals.session.shell, dir, true)
 
-		if typeof(start_dir) == "string" then
-			return print_error(start_dir)
-		end if
+        if typeof(start_dir) == "string" then return print_error(start_dir)
 
-		folders_and_files = start_dir.get_files + start_dir.get_folders
+        folders_and_files = start_dir.get_files + start_dir.get_folders
 
-		if folders_and_files.len == 0 and start then
-			return print_error(start_dir.path + " -> directory is empty")
-		end if
+        if folders_and_files.len == 0 and start then return print_error(start_dir.path + " -> directory is empty")
 
-		for file in start_dir.get_files + start_dir.get_folders
-			permissions = ["[-]", "[-]", "[-]"]
+        for file in start_dir.get_files + start_dir.get_folders
+            permissions = ["[F]", "[-]", "[-]", "[-]"]
 
-			if file.has_permission("r") then
-				permissions[0] = "[R]"
-			end if
+            if file.is_folder then
+                permissions[0] = "[D]"
+            end if
 
-			if file.has_permission("w") then
-				permissions[1] = "[W]"
-			end if
+            if file.has_permission("r") then
+                permissions[1] = "[R]"
+            end if
 
-			if file.has_permission("x") then
-				permissions[2] = "[X]"
-			end if
+            if file.has_permission("w") then
+                permissions[2] = "[W]"
+            end if
 
-			line = [permissions.join(""), file.owner, file.group, round(file.size.to_int / 1024 / 1024, 2) + "M", file.path].join(" ")
+            if file.has_permission("x") then
+                permissions[3] = "[X]"
+            end if
 
-			if not search or line.indexOf(search) != null then
-				out.push(line)
-			end if
+            line = [permissions.join(""), file.owner, file.group, round(file.size.to_int / 1024 / 1024, 2) + "M", file.path].join(" ")
 
-			if file.is_folder then
-				scan_dir(file.path, false)
-			end if
+            if not search or line.indexOf(search) != null then
+                out.push(line)
+            end if
 
-		end for
+            if file.is_folder then
+                scan_dir(file.path, false)
+            end if
 
-	end function
+        end for
 
-	scan_dir(start_dir, true)
+    end function
 
-	if out.len == 0 then
-		return 
-	end if
+    scan_dir(start_dir, true)
 
-	print_info(format_columns(out.join("\n")))
+    if out.len == 0 then
+        return 
+    end if
 
-	return out
-end function
+    print_info(format_columns(out.join("\n")))
 
-globals.metexpreter.upload = function(params)
-	if globals.session.type != "shell" then
-		return print_error("Only shell sessions can perform this command")
-
-	end if
-
-	if params.len == 0 then
-		return print("Usage: upload <file path>")
-	end if
-
-	if params[0].indexOf("/") == null then
-		params[0] = globals.localsession.pwd + "/" + params[0]
-	end if
-
-	file_to_upload = get_file(globals.localsession.shell, params[0], true)
-
-	if typeof(file_to_upload) == "string" then
-		return print_error(file_to_upload)
-	end if
-
-	result = globals.localsession.shell.scp(file_to_upload.path, globals.session.pwd, globals.session.shell)
-	uploaded_file = get_file(globals.session.shell, globals.session.pwd + "/" + file_to_upload.name)
-	ln
-
-	if typeof(uploaded_file) == "file" then
-		uploaded_file.set_owner(globals.session.user)
-		uploaded_file.set_group(globals.session.user)
-	end if
-
-	print_good(file_to_upload.path + " -> " + globals.session.pwd + "/" + file_to_upload.name)
+    return out
 end function
 
 globals.metexpreter.ipconfig = function(params)
-	if globals.session.type == "file" then
-		return print_error("Only shell and computer sessions can perform this command")
+    if globals.session.type == "file" then return print_error("Only shell and computer sessions can perform this command")
 
-	end if
+    if params.len == 3 then
+        device = params[0].trim
+        local_ip = params[1].trim
+        gateway_ip = params[2].trim
+        
+        if not is_valid_ip(local_ip) then  return print_error(local_ip + " is not a valid ip address")
+        
+        if not is_valid_ip(local_ip) then return print_error(gateway_ip + " is not a valid ip address")
+        output = globals.session.computer.connect_ethernet(device, local_ip, gateway_ip)
+        
+        if output.len > 0 then return print_error(output)
+        print_good("Network settings updated successfully")
+        ln
+    end if
 
-	if params.len == 3 then
-		device = params[0].trim
-		local_ip = params[1].trim
-		gateway_ip = params[2].trim
-		
-		if not is_valid_ip(local_ip) then
-			return print_error(local_ip + " is not a valid ip address")
-		end if
-		
-		if not is_valid_ip(local_ip) then
-			return print_error(gateway_ip + " is not a valid ip address")
-		end if
-		output = globals.session.computer.connect_ethernet(device, local_ip, gateway_ip)
-		
-		if output.len > 0 then
-			return print_error(output)
-		end if
-		print_good("Network settings updated successfully")
-		ln
-	end if
+    if globals.session.computer.is_network_active then
+        if globals.session.computer.active_net_card == "WIFI" then
+            output = "\nConnected to Wi-Fi"
+        else
+            output = "\nEthernet connection:"
+        end if
 
-	if globals.session.computer.is_network_active then
-		if globals.session.computer.active_net_card == "WIFI" then
-			output = "\nConnected to Wi-Fi"
-		else
-			output = "\nEthernet connection:"
-		end if
+        lip = globals.session.computer.local_ip
+        pip = globals.session.computer.public_ip
+        gw = globals.session.computer.network_gateway
+    else
+        lip = "0.0.0.0"
+        pip = "0.0.0.0"
+        gw = "0.0.0.0"
+        output = "\nNot connected to the network."
+    end if
 
-		lip = globals.session.computer.local_ip
-		pip = globals.session.computer.public_ip
-		gw = globals.session.computer.network_gateway
-	else
-		lip = "0.0.0.0"
-		pip = "0.0.0.0"
-		gw = "0.0.0.0"
-		output = "\nNot connected to the network."
-	end if
-
-	print_info(output + "\n----------------\nPublic IP: " + pip + "\nLocal IP: " + lip + "\nGateway: " + gw + "\n")
-	return output
+    print_info(output + "\n----------------\nPublic IP: " + pip + "\nLocal IP: " + lip + "\nGateway: " + gw + "\n")
+    return output
 end function
 
 globals.metexpreter.clearav = function(params)
-	print("not yet :)")
+    print("not yet :)")
 end function
 
 globals.metexpreter.execute = function(params)
-	if globals.session.type != "shell" then
-		return print_error("Only shell and computer sessions can perform this command")
+    if globals.session.type != "shell" then return print_error("Only shell and computer sessions can perform this command")
 
-	end if
+    if params.len == 0 then return print("Usage: execute <bin command> <params>")
 
-	if params.len == 0 then
-		return print("Usage: execute <bin command> <params>")
-	end if
+    command = params[0]
+    command_arguments = []
 
-	command = params[0]
-	command_arguments = []
+    if params.len > 1 then command_arguments = params[1 : ]
 
-	if params.len > 1 then
-		command_arguments = params[1 : ]
-	end if
-
-	return globals.session.shell.launch("/bin/" + command, command_arguments.join(" "))
+    return globals.session.shell.launch("/bin/" + command, command_arguments.join(" "))
 end function
 
 globals.metexpreter.getuid = function(params)
-	print_info("Current user is " + globals.session.user)
-	return globals.session.user
+    print_info("Current user is " + globals.session.user)
+    return globals.session.user
 end function
 
 globals.metexpreter.kill = function(params)
-	if globals.session.type == "file" then
-		return print_error("Only shell and computer sessions can perform this command")
+    if globals.session.type == "file" then return print_error("Only shell and computer sessions can perform this command")
 
-	end if
+    if params.len == 0 then return print("Usage: kill <pid>")
 
-	if params.len == 0 then
-		return print("Usage: kill <pid>")
-	end if
+    close = globals.session.computer.close_program(params[0].to_int)
 
-	close = globals.session.computer.close_program(params[0].to_int)
+    if not close then return print_error("Unable to close this process -> Invalid PID")
 
-	if not close then
-		return print_error("Unable to close this process -> Invalid PID")
-	end if
+    if typeof(close) == "string" then return print_error(close)
 
-	if typeof(close) == "string" then
-		return print_error(close)
-	end if
-
-	return print_good("Process " + params[0].to_int + " -> " + "Killed")
+    return print_good("Process " + params[0].to_int + " -> " + "Killed")
 end function
 
 globals.metexpreter.ps = function(params)
-	if globals.session.type == "file" then
-		return print_error("Only shell and computer sessions can perform this command")
+    if globals.session.type == "file" then return print_error("Only shell and computer sessions can perform this command")
 
-	end if
-
-	print_info(format_columns(globals.session.computer.show_procs))
+    print_info(format_columns(globals.session.computer.show_procs))
 
 end function
 
 globals.metexpreter.hashdump = function(params)
-	out = []
+    out = []
 
-	scan_dir = function(dir)
-		start_dir = get_directory(globals.session.shell, dir, true)
+    scan_dir = function(dir)
+        start_dir = get_file(globals.session.shell, dir, true)
 
-		if typeof(start_dir) != "file" then
-			return 
-		end if
+        if typeof(start_dir) != "file" then return
 
-		for file in start_dir.get_files + start_dir.get_folders
-			if not file.is_folder and not file.is_binary and file.has_permission("r") then
-				file_content = file.get_content.replace("\n", char(10)).split(char(10))
-				vars = "abcdef1234567890"
+        for file in start_dir.get_files + start_dir.get_folders
+            if not file.is_folder and not file.is_binary and file.has_permission("r") then
+                file_content = file.get_content.replace("\n", char(10)).split(char(10))
+                vars = "abcdef1234567890"
 
-				for line in file_content
-					content_new = line
-					hashfound = null
+                for line in file_content
+                    content_new = line
+                    hashfound = null
 
-					for s in line
-						if vars.indexOf(s) == null then
-							content_new = content_new.replace(s, "-")
-						end if
+                    for s in line
+                        if vars.indexOf(s) == null then content_new = content_new.replace(s, "-")
+                    end for
 
-					end for
+                    for new_s in content_new.split("-")
+                        if new_s.len == 32 then
+                            hashfound = true
+                        end if
 
-					for new_s in content_new.split("-")
-						if new_s.len == 32 then
-							hashfound = true
-						end if
+                    end for
 
-					end for
+                    if hashfound and out.indexOf(line) == null then
+                        out.push([line.trim.replace(":", " | "), file.path].join(" | "))
+                    end if
 
-					if hashfound and out.indexOf(line) == null then
-						out.push([line.trim.replace(":", " | "), file.path].join(" | "))
-					end if
+                end for
 
-				end for
+            end if
 
-			end if
+            if file.is_folder then scan_dir(file.path)
 
-			if file.is_folder then
-				scan_dir(file.path)
-			end if
+        end for
+    end function
 
-		end for
-	end function
+    scan_dir("/")
 
-	scan_dir("/")
+    if out.len == 0 then return print_error("0 results founds", "Hashdump")
 
-	if out.len == 0 then
-		return print_error("0 results founds", "Hashdump")
-	end if
+    print(format_columns(out.join("\n")))
 
-	print(format_columns(out.join("\n")))
-
-	return out
+    return out
 end function
 
 globals.metexpreter.search = function(params)
-	globals.metexpreter.ls(["/"], params[0])
+    globals.metexpreter.ls(["/"], params[0])
 end function
 
 globals.metexpreter.shell = function(params)
-	if globals.session.type != "shell" then
-		return print_error("Only shell sessions can perform this command")
-
-	end if
-	globals.session.shell.start_terminal
+    if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
+    globals.session.shell.start_terminal
 end function
 
 globals.metexpreter.getsystem = function(params)
-	if globals.session.type != "shell" then
-		return print_error("Onyl shell sessions can perform this command")
+    if globals.session.type != "shell" then return print_error("Onyl shell sessions can perform this command")
 
-	end if
+    print_info("Try to get /etc/passwd...")
+    passwd = get_file(globals.session.shell, "/etc/passwd", true)
 
-	print_info("Try to get /etc/passwd...")
-	passwd = get_file(globals.session.shell, "/etc/passwd", true)
+    if typeof(passwd) != "file" then return print_error("No /etc/passwd file permissions")
 
-	if typeof(passwd) != "file" then
-		return print_error("No /etc/passwd file permissions")
-	end if
+    print_good("/etc/passwd readable!")
+    print_info("Try to get root hash...")
+    root_passwd = passwd.get_content.split("\n")[0].split(":")[1]
 
-	print_good("/etc/passwd readable!")
-	print_info("Try to get root hash...")
-	root_passwd = passwd.get_content.split("\n")[0].split(":")[1]
+    if not root_passwd then return print_error("Unable to get root hash")
 
-	if not root_passwd then
-		return print_error("Unable to get root hash")
-	end if
+    print_good("Root hash -> " + root_passwd)
+    print_info("Attempt to decipher root hash...")
+    root_passwd = globals.metexpreter.decipher([root_passwd])
 
-	print_good("Root hash -> " + root_passwd)
-	print_info("Attempt to decipher root hash...")
-	root_passwd = globals.metexpreter.decipher([root_passwd])
+    if not root_passwd then  return print_error("Unable to decipher root hash")
 
-	if not root_passwd then
-		return print_error("Unable to decipher root hash")
-	end if
+    print_info("Write reverse shell code on remote machine...")
+    getsystemcode = "get_custom_object.reverse_shell = get_shell(""root"", """ + root_passwd + """)"
+    write_file(globals.session, "/home/guest/getsystem.src", getsystemcode)
+    getsystemcode_file = get_file(globals.session.shell, "/home/guest/getsystem.src")
 
-	print_info("Write reverse shell code on remote machine...")
-	getsystemcode = "get_custom_object.reverse_shell = get_shell(""root"", """ + root_passwd + """)"
-	write_file(globals.session, "/home/guest/getsystem.src", getsystemcode)
-	getsystemcode_file = get_file(globals.session.shell, "/home/guest/getsystem.src")
+    if typeof(getsystemcode_file) != "file" then
+        return print_error("Unable to write reverse shell code")
+    end if
 
-	if typeof(getsystemcode_file) != "file" then
-		return print_error("Unable to write reverse shell code")
-	end if
+    print_good("Reverse shell code writed successfully!")
+    print_info("Attempt to build reverse shell...")
+    bind_result = globals.session.shell.build("/home/guest/getsystem.src", "/home/guest")
 
-	print_good("Reverse shell code writed successfully!")
-	print_info("Attempt to build reverse shell...")
-	bind_result = globals.session.shell.build("/home/guest/getsystem.src", "/home/guest")
+    if bind_result != "" then
+        return print_error("Reverse shell build failed! " + bind_result)
+    end if
 
-	if bind_result != "" then
-		return print_error("Reverse shell build failed! " + bind_result)
-	end if
+    getsystemcode_binary_file = get_file(globals.session.shell, "/home/guest/getsystem.src")
 
-	getsystemcode_binary_file = get_file(globals.session.shell, "/home/guest/getsystem.src")
+    if typeof(getsystemcode_binary_file) != "file" then
+        return print_error("Unable to find reverse shell binary")
+    end if
 
-	if typeof(getsystemcode_binary_file) != "file" then
-		return print_error("Unable to find reverse shell binary")
-	end if
+    print_good("Reverse shell code build successfully!")
+    print_info("Attempt to launch reverse shell binary...")
+    globals.session.shell.launch("/home/guest/getsystem")
 
-	print_good("Reverse shell code build successfully!")
-	print_info("Attempt to launch reverse shell binary...")
-	globals.session.shell.launch("/home/guest/getsystem")
+    if not get_custom_object.reverse_shell then
+        return print_error("Unable to get a reverse shell. Getsystem command failed!")
+    end if
 
-	if not get_custom_object.reverse_shell then
-		return print_error("Unable to get a reverse shell. Getsystem command failed!")
-	end if
-
-	register_session(get_custom_object.reverse_shell)
-	globals.session = globals.sessions[-1]
-	print_good("Getsystem command successfully done! New root reverse shell acquired!")
+    register_session(get_custom_object.reverse_shell)
+    globals.session = globals.sessions[-1]
+    print_good("Getsystem command successfully done! New root reverse shell acquired!")
 end function
 
 globals.metexpreter.write = function(params = [])
-	if globals.session.type == "file" then
-		return print_error("Only shell and computer sessions can perform this command")
+    if globals.session.type == "file" then return print_error("Only shell and computer sessions can perform this command")
 
-	end if
+    if params.len == 0 then return print("Usage write <file path>")
 
-	if params.len == 0 then
-		return print("Usage write <file path>")
-	end if
+    content = []
 
-	content = []
+    while true
+        clear_screen
+        print("Write session\n")
+        print("Usage:\n")
+        print(":d: Delete last line")
+        print(":q: Quit write session without print content")
+        print(":wq: Quit write session and print content in " + params[0])
+        i = 0
+        ln
+        line_content = []
 
-	while true
-		clear_screen
-		print("Write session\n")
-		print("Usage:\n")
-		print(":d: Delete last line")
-		print(":w: End write session and print content in " + params[0])
-		print(":q: Quit write session without print content")
-		i = 0
-		ln
-		line_content = []
+        for line in content
+            line_content = line_content + line.split("\n")
+        end for
 
-		for line in content
-			line_content = line_content + line.split("\n")
-		end for
+        content = line_content
 
-		content = line_content
+        for oldline in content
+            i = i + 1
+            print("- " + oldline)
+        end for
 
-		for oldline in content
-			i = i + 1
-			print("- " + oldline)
-		end for
+        line = user_input("- ")
 
-		line = user_input("- ")
+        if line.trim == ":d" then
+            content.pop
+            continue
+        end if
 
-		if line.trim == ":d" then
-			content.pop
-			continue
-		end if
+        if line.trim == ":wq" or line == ":q" then
+            if line.trim == ":q" then return
+            return write_file(globals.session, params[0], content.join("\n"))
+        end if
 
-		if line.trim == ":w" or line == ":q" then
-			if line.trim == ":q" then
-				return 
-			end if
-			return write_file(globals.session, params[0], content.join("\n"))
-		end if
-
-		content.push(line)
-	end while
+        content.push(line)
+    end while
 end function
 
 globals.metexpreter.decipher = function(params)
-	if params.len == 0 or params[0].trim.len != 32 then
-		return print("Usage decipher <hash>")
-	end if
+    if params.len == 0 or params[0].trim.len != 32 then
+        return print("Usage decipher <hash>")
+    end if
 
-	result = crypto.decipher(params[0])
+    result = crypto.decipher(params[0])
 
-	if not result then
-		return print_error("Invalid hash")
-	end if
+    if not result then
+        return print_error("Invalid hash")
+    end if
 
-	print_good(params[0] + " -> " + result)
-	return result
+    print_good(params[0] + " -> " + result)
+    return result
 end function
 
 globals.metexpreter.switch = function(params)
-	
-	if globals.session.type != "shell" then
-		return print_error("Only shell sessions can perform this command")
-	end if
-	print_info("Upload " + program_path)
-	ln
-	globals.metexpreter.upload([program_path])
-	print_info("Upload " + metaxploit_path)
-	ln
-	globals.metexpreter.upload([metaxploit_path])
-	print_info("Upload " + crypto_path)
-	ln
-	globals.metexpreter.upload([crypto_path])
-	print_good("MTX Framework uploaded successfully")
-	ln
-	print_info("Launch MTX Framework binary")
-	ln
-	globals.session.shell.launch(globals.session.pwd + "/" + program_path.split("/")[-1])
+    
+    if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
+    print_info("Upload " + program_path)
+    ln
+    globals.metexpreter.upload([program_path])
+    print_info("Upload " + metaxploit_path)
+    ln
+    globals.metexpreter.upload([metaxploit_path])
+    print_info("Upload " + crypto_path)
+    ln
+    globals.metexpreter.upload([crypto_path])
+    print_good("MTX Framework uploaded successfully")
+    ln
+    print_info("Launch MTX Framework binary")
+    ln
+    globals.session.shell.launch(globals.session.pwd + "/" + program_path.split("/")[-1])
 end function
 
 globals.metexpreter.install = function(params)
-	
-	if globals.session.type != "shell" then
-		return print_error("Only shell sessions can perform this command")
-	end if
-	
-	if params.len == "0" then
-		return print("Usage: install <ssh|http|ftp|chat|repository|sql|smtp>")
-	end if
-	service = params[0].lower
-	
-	if ["ssh", "http", "ftp", "chat", "repository", "sql", "smtp"].indexOf(service) == null then
-		return print_error(service + " -> Invalid service")
-	end if
-	library = "lib" + service + ".so"
-	print_info("Update packages list...")
-	globals.session.shell.launch("/bin/apt-get", "update")
-	print_info("Install " + library + "...")
-	globals.session.shell.launch("/bin/apt-get", "install " + library)
+    
+    if globals.session.type != "shell" then return print_error("Only shell sessions can perform this command")
+    
+    if params.len == "0" then return print("Usage: install <ssh|http|ftp|chat|repository|sql|smtp>")
+    service = params[0].lower
+    
+    if ["ssh", "http", "ftp", "chat", "repository", "sql", "smtp"].indexOf(service) == null then
+        return print_error(service + " -> Invalid service")
+    end if
+    library = "lib" + service + ".so"
+    print_info("Update packages list...")
+    globals.session.shell.launch("/bin/apt-get", "update")
+    print_info("Install " + library + "...")
+    globals.session.shell.launch("/bin/apt-get", "install " + library)
 
-	install_code = "library = include_lib(""/lib/" + library + """); if not library then return; library.install_service"
+    install_code = "library = include_lib(""/lib/" + library + """); if not library then return; library.install_service"
 
-	print_info("Write the installation and starup code in /home/guest/install_" + service + ".src" + "...")
-	write_file(globals.session, "/home/guest/install_" + service + ".src", install_code)
-	install_code_file = get_file(globals.session.shell, "/home/guest/install_" + service + ".src")
-	
-	if typeof(install_code_file) != "file" then
-		return print_error("Unable to write the install service source in /home/guest/install_" + service + ".src")
-	end if
-	print_info("Build /home/guest/install_" + service + ".src...")
-	install_build_result = globals.session.shell.build("/home/guest/install_" + service + ".src", "/home/guest")
-	
-	if install_build_result == 0 then
-		return print_error("Unable to build " + "/home/guest/install_" + service + ".src")
-	end if
-	print_info("Launch the install_" + service + " binary")
-	globals.session.shell.launch("/home/guest/install_" + service)
-	print_good("Service " + service + " installation complete!")
+    print_info("Write the installation and starup code in /home/guest/install_" + service + ".src" + "...")
+    write_file(globals.session, "/home/guest/install_" + service + ".src", install_code)
+    install_code_file = get_file(globals.session.shell, "/home/guest/install_" + service + ".src")
+    
+    if typeof(install_code_file) != "file" then
+        return print_error("Unable to write the install service source in /home/guest/install_" + service + ".src")
+    end if
+    print_info("Build /home/guest/install_" + service + ".src...")
+    install_build_result = globals.session.shell.build("/home/guest/install_" + service + ".src", "/home/guest")
+    
+    if install_build_result == 0 then return print_error("Unable to build " + "/home/guest/install_" + service + ".src")
+
+    print_info("Launch the install_" + service + " binary")
+    globals.session.shell.launch("/home/guest/install_" + service)
+    print_good("Service " + service + " installation complete!")
 end function
 
 globals.metexpreter.netscan = @globals.mtx.netscan
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// FOR DEBUG PURPOSE ONLY
+// while true
+//     input = user_input("$ ")
+//     command = input.split(" ")[0]
+//     command_params = input.split(" ")[0:-1]
+//     globals.metexpreter[command](command.params)
+// end while
+// END FOR DEBUG PURPOSE ONLY
+
 globals.mtx.start
