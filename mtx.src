@@ -97,12 +97,12 @@ get_exploit_info = function(scan_address_result)
 
             if key.indexOf(" ") then key = key.split(" ")[1]
 
-            key = key.replace("<b>", "").replace("</b>", "").trim
+            key = key.replace("<b>", "").replace("<\/b>", "").trim
             vulnerabilities.push({"variable": key, "requirements": [], "raw": line.replace("<b>", "").replace("</b>", "").trim})
             continue
         end if
 
-        line = line.replace("<b>", "").replace("</b>", "").trim
+        line = line.replace("<b>", "").replace("<\/b>", "").trim
         vulnerabilities[i].raw = vulnerabilities[i].raw + "\n" + line
         vulnerabilities[i].requirements.push(line)
     end for
@@ -173,7 +173,7 @@ get_file = function(shell, path, silent = null)
 
     if path == "" then path = "/"
 
-    path = path.replace("//", "/")
+    path = path.replace("\/\/", "\/")
 
     while file.path != path
 
@@ -187,7 +187,7 @@ get_file = function(shell, path, silent = null)
             directory_to_reach = path.split(file.path)[1]split("\/")[1]
         end if
 
-        directory_to_reach = directory_to_reach.replace("//", "/")
+        directory_to_reach = directory_to_reach.replace("\/\/", "\/")
 
         found = null
 
@@ -218,7 +218,7 @@ write_file = function(session, path, content = "")
         path = path.replace(s, "")
     end for
 
-    path = path.replace("//", "/")
+    path = path.replace("\/\/", "\/")
     working_folder = ""
     folder_split = pathsplit("\/")[1 : ]
 
@@ -405,16 +405,16 @@ write_exploit = function(exploit)
     if rank == 6 then rank = "Excellent"
 
     exploit_content = get_exploit_example
-    exploit_content = exploit_content.replace("[name]", name)
-    exploit_content = exploit_content.replace("[author]", "MTX DScanner")
-    exploit_content = exploit_content.replace("[rank]", rank)
-    exploit_content = exploit_content.replace("[privileged]", get_user(exploit.overflow).name != "guest")
-    exploit_content = exploit_content.replace("[disclosure_date]", current_date.split(" ")[0])
-    exploit_content = exploit_content.replace("[library_name]", exploit.library)
-    exploit_content = exploit_content.replace("[library_version]", exploit.version)
-    exploit_content = exploit_content.replace("[address]", exploit.address)
-    exploit_content = exploit_content.replace("[variable]", exploit.variable)
-    exploit_content = exploit_content.replace("[argument_required]", exploit.type == "passwchanger" or exploit.type == "lanswitcher")
+    exploit_content = exploit_content.replace("\[name\]", name)
+    exploit_content = exploit_content.replace("\[author\]", "MTX DScanner")
+    exploit_content = exploit_content.replace("\[rank\]", rank)
+    exploit_content = exploit_content.replace("\[privileged\]", get_user(exploit.overflow).name != "guest")
+    exploit_content = exploit_content.replace("\[disclosure_date\]", current_date.split(" ")[0])
+    exploit_content = exploit_content.replace("\[library_name\]", exploit.library)
+    exploit_content = exploit_content.replace("\[library_version\]", exploit.version)
+    exploit_content = exploit_content.replace("\[address\]", exploit.address)
+    exploit_content = exploit_content.replace("\[variable\]", exploit.variable)
+    exploit_content = exploit_content.replace("\[argument_required\]", exploit.type == "passwchanger" or exploit.type == "lanswitcher")
     argument_description = ""
 
     if exploit.type == "passwchanger" then
@@ -441,11 +441,11 @@ write_exploit = function(exploit)
     
     if exploit.library == "libsmtp.so" then port = "25"
 
-    exploit_content = exploit_content.replace("[port]", port)
-    exploit_content = exploit_content.replace("[argument_drescription]", argument_description)
+    exploit_content = exploit_content.replace("\[port\]", port)
+    exploit_content = exploit_content.replace("\[argument_drescription\]", argument_description)
     // RICORDATI DI CAMBIARE LA DESCRIZIONE PER I TIPI NUMBER E LAN_SWITCH
-    exploit_content = exploit_content.replace("[description]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type. " + exploit.raw_info.replace("\n", ". ").replace("Buffer overflow..", "Requirements: ").replace("Require: ", "").replace("\..", "."))
-    write_file(globals.localsession, "/usr/share/mtx/" + exploit.name + ".src", exploit_content)
+    exploit_content = exploit_content.replace("\[description\]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type\. " + exploit.raw_info.replace("\n", "\. ").replace("Buffer overflow\.\.", "Requirements\: ").replace("Require\: ", "").replace("\..", "\."))
+    write_file(globals.localsession, "/usr/share/mtx/" + exploit.name + "\.src", exploit_content)
 end function
 
 compose_exploit_name = function(exploit)
@@ -790,12 +790,12 @@ globals.mtx.reload = function(params = [], first_loading = false)
         current_content = current_content.replace("""", "")
         exploit = {}
         exploit.file = current_file
-        exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace("\.src", "")
-        exploit.type = exploit.id.split("exploit/")[1]split("\/")[0]
+        exploit.id = "exploit/" + current_file.path.split("exploits\/")[1].replace("\.src", "")
+        exploit.type = exploit.id.split("exploit\/")[1]split("\/")[0]
 
         for index in ["name", "rank", "disclosure_date", "privileged", "description"]
             if not exploit.hasIndex(index) then exploit[index] = "-----"
-            exploit[index] = (current_content.split("MTXExploit." + index)[1].split("\n")[0].split("=")[1]).trim
+            exploit[index] = (current_content.split("MTXExploit\." + index)[1].split("\n")[0].split("=")[1]).trim
         end for
 
         if not globals.mtx.exploits_count.hasIndex(exploit.type) and exploit.idsplit("\/").len > 2 then
@@ -819,12 +819,12 @@ globals.mtx.reload = function(params = [], first_loading = false)
             if current_content == "" then return
             current_content = current_content.replace("""", "")
             payload = {}
-            payload.id = "payload/" + payload_file.path.split("payloads/")[1].replace("\.src", "")
+            payload.id = "payload/" + payload_file.path.split("payloads\/")[1].replace("\.src", "")
             payload.file = payload_file
 
             for index in ["name", "description", "author"]
                 if not payload.hasIndex(index) then  payload[index] = "-----"
-                payload[index] = (current_content.split("MTXPayload." + index)[1].split("\n")[0].split("=")[1]).trim
+                payload[index] = (current_content.split("MTXPayload\." + index)[1].split("\n")[0].split("=")[1]).trim
             end for
 
             globals.mtx.payloads.push(payload)
@@ -1063,7 +1063,7 @@ globals.mtx.show = function(params)
         ln
         print("Description")
         print("-----------")
-        print(exploit_found.description.replace("\. ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n------------\n"))
+        print(exploit_found.description.replace("\. ", "\n").replace("  ", " ").replace("Requirements\: ", "\nRequirements\n------------\n"))
     end if
 
 end function
@@ -1186,7 +1186,7 @@ globals.mtx.scan = function(params)
 
         if not scan_variables_results then return print_error("No vulnerabilities founds on address " + address, target + ":" + port)
 
-        scan_variables_results = scan_variables_results.replace("* ", " Require: ")
+        scan_variables_results = scan_variables_results.replace("\* ", " Require\: ")
         scan_variables_results = scan_variables_results.split("\n")[2 : ].join(char(10))
         //print_info(scan_variables_results, target + ":" + port)
         vulnerabilities = get_exploit_info(scan_variables_results)
@@ -1215,7 +1215,7 @@ globals.mtx.scan = function(params)
             exploit.requirements = vulnerability.requirements
             exploit.raw_info = vulnerability.raw
             exploit.name = "exploits/" + compose_exploit_name(exploit)
-            exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace("\.src", "")
+            exploit.id = "exploit/" + exploit.name.split("exploits\/")[1].replace("\.src", "")
             exploit.overflow = overlow
             ln
             print_good("Successfully created new exploit: " + exploit.id)
@@ -1515,7 +1515,7 @@ globals.mtx.netscan = function(params)
 
     ns_code.push("for sub_device in sub_router.devices_lan_ip")
 
-    ns_code.push("if sub_router.local_ip == sub_device or sub_device.indexOf(sub_router.local_ip.split(""."")[0:-1].join(""."")) == null then continue")
+    ns_code.push("if sub_router.local_ip == sub_device or sub_device.indexOf(sub_router.local_ip.split(""\."")[0:-1].join(""."")) == null then continue")
 
     ns_code.push("type = ""successful""")
 
@@ -2000,7 +2000,7 @@ globals.metexpreter.hashdump = function(params)
                     end for
 
                     if hashfound and out.indexOf(line) == null then
-                        out.push([line.trim.replace(":", " | "), file.path].join(" | "))
+                        out.push([line.trim.replace("\:", " \| "), file.path].join(" | "))
                     end if
 
                 end for
