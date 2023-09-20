@@ -1,7 +1,7 @@
 // # MTX Framework
 // Author: tuonux <tuonux0@gmail.com>
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
-VERSION = "1.2.0"
+VERSION = "1.2.1 for nightly version"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
 metaxploit = include_lib(metaxploit_path)
@@ -67,6 +67,14 @@ string.clean = function()
     return self
 end function
 
+string.escape = function()
+    ec = "\^$.|?*+()[]{}"
+    for s in ec
+        self = self.replace("\"+s, "\"+s)
+    end for
+    return self
+end function
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 debug = function(var, key = "", deep = 1)
@@ -97,12 +105,12 @@ get_exploit_info = function(scan_address_result)
 
             if key.indexOf(" ") then key = key.split(" ")[1]
 
-            key = key.replace("<b>", "").replace("<\/b>", "").trim
+            key = key.replace("<b>", "").replace("</b>", "").trim
             vulnerabilities.push({"variable": key, "requirements": [], "raw": line.replace("<b>", "").replace("</b>", "").trim})
             continue
         end if
 
-        line = line.replace("<b>", "").replace("<\/b>", "").trim
+        line = line.replace("<b>", "").replace("</b>", "").trim
         vulnerabilities[i].raw = vulnerabilities[i].raw + "\n" + line
         vulnerabilities[i].requirements.push(line)
     end for
@@ -173,7 +181,7 @@ get_file = function(shell, path, silent = null)
 
     if path == "" then path = "/"
 
-    path = path.replace("\/\/", "\/")
+    path = path.replace("//", "/")
 
     while file.path != path
 
@@ -184,10 +192,10 @@ get_file = function(shell, path, silent = null)
         if file.path == "/" then
             directory_to_reach = path.split(file.path)[1]
         else
-            directory_to_reach = path.split(file.path)[1].split("\/")[1]
+            directory_to_reach = path.split(file.path)[1].split("/")[1]
         end if
 
-        directory_to_reach = directory_to_reach.replace("\/\/", "\/")
+        directory_to_reach = directory_to_reach.replace("//", "/")
 
         found = null
 
@@ -218,9 +226,9 @@ write_file = function(session, path, content = "")
         path = path.replace(s, "")
     end for
 
-    path = path.replace("\/\/", "\/")
+    path = path.replace("//", "/")
     working_folder = ""
-    folder_split = path.split("\/")[1 : ]
+    folder_split = path.split("/")[1 : ]
 
     for i in range(0, folder_split.len - 2)
         folder_path = "/" + folder_split[0 : i].join("/")
@@ -231,7 +239,7 @@ write_file = function(session, path, content = "")
     file_to = get_file(session.shell, path, true)
 
     if typeof(file_to) != "file" then
-        x = session.computer.touch(path.split("\/")[0 : -1].join("/"), path.split("\/")[-1])
+        x = session.computer.touch(path.split("/")[0 : -1].join("/"), path.split("/")[-1])
         file_to = session.computer.File(path)
 
         if x != true then return
@@ -359,6 +367,7 @@ get_payload_example = function()
 end function
 
 write_exploit = function(exploit)
+
     rank = 6
     phrases = ["Overflow on", "Outdated library", "Vulnerable variable on"]
     phrase = phrases[floor(rnd * phrases.len)]
@@ -404,17 +413,25 @@ write_exploit = function(exploit)
     if rank == 5 then rank = "Great"
     if rank == 6 then rank = "Excellent"
 
+    
+
     exploit_content = get_exploit_example
     exploit_content = exploit_content.replace("\[name\]", name)
     exploit_content = exploit_content.replace("\[author\]", "MTX DScanner")
     exploit_content = exploit_content.replace("\[rank\]", rank)
-    exploit_content = exploit_content.replace("\[privileged\]", get_user(exploit.overflow).name != "guest")
-    exploit_content = exploit_content.replace("\[disclosure_date\]", current_date.split(" ")[0])
+    user_info = get_user(exploit.overflow)
+    privileged = "0"
+    if(user_info.name) != "guest" then privileged = "1"
+    exploit_content = exploit_content.replace("\[privileged\]", privileged)
+    exploit_content = exploit_content.replace("\[disclosure_date\]", ""+current_date.split(" ")[0])
     exploit_content = exploit_content.replace("\[library_name\]", exploit.library)
     exploit_content = exploit_content.replace("\[library_version\]", exploit.version)
     exploit_content = exploit_content.replace("\[address\]", exploit.address)
     exploit_content = exploit_content.replace("\[variable\]", exploit.variable)
-    exploit_content = exploit_content.replace("\[argument_required\]", exploit.type == "passwchanger" or exploit.type == "lanswitcher")
+    argument_required = "0"
+
+    if exploit.type == "passwchanger" or exploit.type == "lanswitcher" then argument_required = "1"
+    exploit_content = exploit_content.replace("\[argument_required\]", argument_required)
     argument_description = ""
 
     if exploit.type == "passwchanger" then
@@ -428,24 +445,20 @@ write_exploit = function(exploit)
     end if
 
     port = "0"
-    
-    if exploit.library == "libssh.so" then port = "22"
-    
-    if exploit.library == "libhttp.so" then port = "80"
-    
-    if exploit.library == "libftp.so" then port = "22"
-    
+
     if exploit.library == "kernel_router.so" then  port = "0"
-    
+    if exploit.library == "libftp.so" then port = "21"
+    if exploit.library == "libssh.so" then port = "22"
+    if exploit.library == "libsmtp.so" then port = "25"
+    if exploit.library == "libhttp.so" then port = "80"
     if exploit.library == "libsql.so" then port = "3306"
     
-    if exploit.library == "libsmtp.so" then port = "25"
 
     exploit_content = exploit_content.replace("\[port\]", port)
     exploit_content = exploit_content.replace("\[argument_drescription\]", argument_description)
     // RICORDATI DI CAMBIARE LA DESCRIZIONE PER I TIPI NUMBER E LAN_SWITCH
-    exploit_content = exploit_content.replace("\[description\]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type\. " + exploit.raw_info.replace("\n", "\. ").replace("Buffer overflow\.\.", "Requirements\: ").replace("Require\: ", "").replace("\..", "\."))
-    write_file(globals.localsession, "/usr/share/mtx/" + exploit.name + "\.src", exploit_content)
+    exploit_content = exploit_content.replace("\[description\]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type. " + exploit.raw_info.replace("\n", ". ").replace("Buffer overflow\.\.", "Requirements\: ").replace("Require\: ", "").replace("\.\.", "."))
+    write_file(globals.localsession, current_path + "/mtxframework/" + exploit.name + ".src", exploit_content)
 end function
 
 compose_exploit_name = function(exploit)
@@ -550,7 +563,7 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
         pwd = user_info.path
         pwd = user_info.path
 
-        if globals.sessions.len == 0 then pwd = program_path.split("\/")[0 : -1].join("/")
+        if globals.sessions.len == 0 then pwd = program_path.split("/")[0 : -1].join("/")
 
         
         if subtype == "" then subtype = typeof(result)
@@ -730,8 +743,8 @@ globals.mtx.start = function()
         exploit_path = ""
 
         if globals.mtx.exploit then
-            firts_part = globals.mtx.exploit.id.split("\/")[0]
-            second_part = globals.mtx.exploit.id.split("\/")[1 : ].join("/")
+            firts_part = globals.mtx.exploit.id.split("/")[0]
+            second_part = globals.mtx.exploit.id.split("/")[1 : ].join("/")
             exploit_path = " " + firts_part + "(<color=#FF3A3A>" + second_part + ")</color>"
         end if
 
@@ -743,7 +756,6 @@ globals.mtx.start = function()
         if command_params.len > 1 then command_arguments = command_params[1 : ]
 
         if globals.mtx.hasIndex(command) then
-            print
             ln
             globals.mtx[command](command_arguments)
             ln
@@ -765,11 +777,14 @@ globals.mtx.reload = function(params = [], first_loading = false)
     get_custom_object.MTXExploit.options = {}
     get_custom_object.MTXPayload = {}
     get_custom_object.MTXPayload.options = {}
-    globals.localsession.computer.create_folder("/usr", "share")
-    globals.localsession.computer.create_folder("/usr/share", "mtx")
-    globals.localsession.computer.create_folder("/usr/share/mtx", "exploits")
-    globals.localsession.computer.create_folder("/usr/share/mtx/exploits", "custom")
-    globals.localsession.computer.create_folder("/usr/share/mtx", "payloads")
+    
+    current_location_path = current_path.replace("//".escape, "/")
+    if current_location_path[-1] == "/" then current_location_path = current_location_path[0:-1]
+
+    globals.localsession.computer.create_folder(current_location_path, "mtxframework")
+    globals.localsession.computer.create_folder(current_location_path + "/mtxframework", "exploits")
+    globals.localsession.computer.create_folder(current_location_path + "/mtxframework/exploits", "custom")
+    globals.localsession.computer.create_folder(current_location_path + "/mtxframework", "payloads")
 
     scan_exploits_dir = function(path, forcepath = false)
         current_file = globals.localsession.computer.File(path)
@@ -785,24 +800,24 @@ globals.mtx.reload = function(params = [], first_loading = false)
         end if
 
         current_content = current_file.get_content
-        
+
         if current_content == "" then return
         current_content = current_content.replace("""", "")
         exploit = {}
         exploit.file = current_file
-        exploit.id = "exploit/" + current_file.path.split("exploits\/")[1].replace("\.src", "")
-        exploit.type = exploit.id.split("exploit\/")[1].split("\/")[0]
+        exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace(".src", "")
+        exploit.type = exploit.id.split("exploit/")[1].split("/")[0]
 
         for index in ["name", "rank", "disclosure_date", "privileged", "description"]
             if not exploit.hasIndex(index) then exploit[index] = "-----"
-            exploit[index] = (current_content.split("MTXExploit\." + index)[1].split("\n")[0].split("=")[1]).trim
+            exploit[index] = (current_content.split("MTXExploit." + index)[1].split("\n")[0].split("=")[1]).trim
         end for
 
-        if not globals.mtx.exploits_count.hasIndex(exploit.type) and exploit.id.split("\/").len > 2 then
+        if not globals.mtx.exploits_count.hasIndex(exploit.type) and exploit.id.split("/").len > 2 then
             globals.mtx.exploits_count[exploit.type] = 0
         end if
 
-        if exploit.id.split("\/").len > 2 then
+        if exploit.id.split("/").len > 2 then
             globals.mtx.exploits_count[exploit.type] = globals.mtx.exploits_count[exploit.type] + 1
         end if
 
@@ -819,20 +834,20 @@ globals.mtx.reload = function(params = [], first_loading = false)
             if current_content == "" then return
             current_content = current_content.replace("""", "")
             payload = {}
-            payload.id = "payload/" + payload_file.path.split("payloads\/")[1].replace("\.src", "")
+            payload.id = "payload/" + payload_file.path.split("payloads/")[1].replace(".src", "")
             payload.file = payload_file
 
             for index in ["name", "description", "author"]
                 if not payload.hasIndex(index) then  payload[index] = "-----"
-                payload[index] = (current_content.split("MTXPayload\." + index)[1].split("\n")[0].split("=")[1]).trim
+                payload[index] = (current_content.split("MTXPayload." + index)[1].split("\n")[0].split("=")[1]).trim
             end for
 
             globals.mtx.payloads.push(payload)
         end for
     end function
 
-    scan_exploits_dir("/usr/share/mtx/exploits")
-    scan_payloads_dir("/usr/share/mtx/payloads")
+    scan_exploits_dir(current_location_path + "/mtxframework/exploits")
+    scan_payloads_dir(current_location_path + "/mtxframework/payloads")
 
     if not first_loading then print_good("Exploits and Payloads list reloaded")
 
@@ -864,7 +879,7 @@ globals.mtx.set = function(params, is_g = false)
                 globals.mtx.payload = raw_payload
                 params[1] = globals.mtx.payload.id
                 globals.localsession.shell.build(globals.mtx.payload.file.path, "/home/guest")
-                globals.localsession.shell.launch("/home/guest/" + globals.mtx.payload.file.path.split("\/")[-1].replace("\.src", ""))
+                globals.localsession.shell.launch("/home/guest/" + globals.mtx.payload.file.path.split("/")[-1].replace(".src", ""))
                 get_custom_object.MTXExploit.options = get_custom_object.MTXExploit.options + get_custom_object.MTXPayload.options
 
                 for i in get_custom_object.MTXPayload.options.indexes
@@ -943,7 +958,7 @@ globals.mtx.use = function(params)
     get_custom_object.MTXPayload = {}
     get_custom_object.MTXPayload.options = {}
     globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
-    globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("\/")[-1].replace("\.src", ""))
+    globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
 
     if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null then
         get_custom_object.MTXExploit.options["PAYLOAD"] = {}
@@ -997,7 +1012,7 @@ globals.mtx.run = function(params)
 end function
 
 globals.mtx.show = function(params)
-    if params.len == 0 or ["exploits", "options", "info", "payloads"].indexOf(params[0]) == null then return print("Usage: show <exploits|options|info>")
+    if params.len == 0 or ["exploits", "options", "info", "payloads"].indexOf(params[0]) == null then return print("Usage: show <exploits|payloads|options|info>")
 
     if params[0] == "exploits" then
         return make_table(globals.mtx.exploits, "Exploits", {"id": {"label": "name", "uf": false}, "disclosure_date": {"label": "Disclosure Date"}, "rank": {"label": "Rank"}, "name": {"label": "Description"}})
@@ -1186,7 +1201,7 @@ globals.mtx.scan = function(params)
 
         if not scan_variables_results then return print_error("No vulnerabilities founds on address " + address, target + ":" + port)
 
-        scan_variables_results = scan_variables_results.replace("\* ", " Require\: ")
+        scan_variables_results = scan_variables_results.replace("\* ", " Require: ")
         scan_variables_results = scan_variables_results.split("\n")[2 : ].join(char(10))
         //print_info(scan_variables_results, target + ":" + port)
         vulnerabilities = get_exploit_info(scan_variables_results)
@@ -1203,7 +1218,7 @@ globals.mtx.scan = function(params)
 
             if port == 0 and typeof(overlow) == "number" then type = "fwshutdown"
 
-            if port == 0 and typeof(overlow) == "null" then type = "lanswitcher"
+            if port == 0 and typeof(overlow) == "null" and get_router(target).firewall_rules.len <= 0 then type = "lanswitcher"
 
             exploit = {}
             exploit.library = meta_lib.lib_name
@@ -1215,11 +1230,10 @@ globals.mtx.scan = function(params)
             exploit.requirements = vulnerability.requirements
             exploit.raw_info = vulnerability.raw
             exploit.name = "exploits/" + compose_exploit_name(exploit)
-            exploit.id = "exploit/" + exploit.name.split("exploits\/")[1].replace("\.src", "")
+            exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace(".src", "")
             exploit.overflow = overlow
             ln
             print_good("Successfully created new exploit: " + exploit.id)
-            ln
             write_exploit(exploit)
         end for
 
@@ -1307,7 +1321,7 @@ globals.mtx.nmap = function(params)
 
     if ports == null then return print_error("IP address not found")
 
-    if typeof(ports) == "string" then  return print_error(ports.split("\: ")[1])
+    if typeof(ports) == "string" then  return print_error(ports.split(": ")[1])
 
     local_ip = router.local_ip
     kernel_version = router.kernel_version
@@ -1344,7 +1358,9 @@ globals.mtx.nmap = function(params)
 
         if is_router.firewall_rules.len != 0 then
             print_info("Firewall rules:", "Nmap")
-            print_info("  " + is_router.firewall_rules.join("\n  "), "Nmap")
+            for rule in is_router.firewall_rules
+                print_info("  " + rule, "Nmap")
+            end for
         else
             print_good("No firewall rules", "Nmap")
         end if
@@ -1401,8 +1417,8 @@ globals.mtx.nmap = function(params)
 
         lib = net.dump_lib
         print_good("Founded " + lib.lib_name + " " + lib.version, "Nmap - " + ip_address + ":" + port)
-        service = lib.lib_name.replace("\.so", "").replace("lib", "").trim
-        version = lib.version.replace("\.", "")
+        service = lib.lib_name.replace(".so", "").replace("lib", "").trim
+        version = lib.version.replace(".", "")
 
         print_info("Searching exploits for " + service + " service", "Nmap - " + ip_address + ":" + port)
 
@@ -1430,7 +1446,7 @@ end function
 globals.mtx.connect = function(params)
     if params.len == 0 then return print("Usage: connect <ip>:<port>")
 
-    sp = params[0].split("\:")
+    sp = params[0].split(":")
 
     if sp.len != 2 then return print("Usage: connect <ip>:<port>")
 
@@ -1477,14 +1493,14 @@ globals.mtx["new"] = function(params)
     file_name = md5(current_date)[0 : 6]
 
     if params[0] == "exploit" then
-        exploit_example_path = "/usr/share/mtx/exploits/custom/" + "exploit_" + file_name + ".src"
+        exploit_example_path = current_path + "/mtxframework/exploits/custom/" + "exploit_" + file_name + ".src"
         write_file(globals.localsession, exploit_example_path, get_exploit_example)
         print_info("New exploit example created -> " + exploit_example_path)
         return 
     end if
 
     if params[0] == "payload" then
-        payload_example_path = "/usr/share/mtx/payloads/" + "payload_" + file_name + ".src"
+        payload_example_path = current_path + "/mtxframework/" + "payload_" + file_name + ".src"
         write_file(globals.localsession, payload_example_path, get_payload_example)
         print_info("New payload example created -> " + payload_example_path)
         return 
@@ -1531,7 +1547,7 @@ globals.mtx.netscan = function(params)
 
     ns_code.push("print(format_columns(out.join(""\n"")))")
 
-    ns_code = ns_code.join("\n")
+    ns_code = ns_code.join(char(10))
     write_file(globals.session, "/home/guest/netscan.src", ns_code)
     globals.session.shell.build("/home/guest/netscan.src", "/home/guest")
     globals.session.shell.launch("/home/guest/netscan")
@@ -1570,6 +1586,7 @@ globals.mtx.help = function(params)
     print("   discover     Scan the globe with random IPs and write the exploits localy")
 
     print("   scan         Scan target port and if vulnerable write the exploits localy")
+    print("   netscan      Discover lan devices")
 
     print("   new          Generate new template example module")
     print("   install      Install a service on the victim machine")
@@ -1587,7 +1604,6 @@ globals.metexpreter = {}
 
 globals.metexpreter.start = function(params = [])
     ln
-
     while hash(globals.session) != hash(globals.localsession)
         command = user_input("metexpreter > ").trim
         command_params = command.split(" ")
@@ -1738,7 +1754,7 @@ globals.metexpreter.download = function(params)
 
     if params.len == 0 then return print("Usage: download <file path>")
 
-    if params[0][0] != "/" then  params[0] = globals.session.pwd + "/" + params[0]
+    if params[0][0] != "/" then  params[0] = globals.session.pwd + params[0]
 
     file_to_download = get_file(globals.session.shell, params[0], true)
 
@@ -1763,7 +1779,7 @@ globals.metexpreter.upload = function(params)
 
     if params.len == 0 then return print("Usage: upload <file path>")
 
-    if params[0][0] != "/" then params[0] = globals.localsession.pwd + "/" + params[0]
+    if params[0][0] != "/" then params[0] = globals.localsession.pwd + "/ " + params[0]
 
     file_to_upload = get_file(globals.localsession.shell, params[0], true)
 
@@ -1816,8 +1832,8 @@ globals.metexpreter.mkdir = function(params)
 
     if path[0] != "/" then path = session.pwd + "/" + path
 
-    folder_path = path.split("\/")[0 : -1].join("/")
-    folder_name = path.split("\/")[-1]
+    folder_path = path.split("/")[0 : -1].join("/")
+    folder_name = path.split("/")[-1]
 
     result = globals.session.computer.create_folder(folder_path, folder_name)
     if typeof(result) == "string" then return print_error(path + " -> " + result)
@@ -1924,9 +1940,11 @@ globals.metexpreter.ipconfig = function(params)
         output = "\nNot connected to the network."
     end if
 
-    print_info(output + "\n----------------\nPublic IP: " + pip + "\nLocal IP: " + lip + "\nGateway: " + gw + "\n")
+    print(output + "\n----------------\nPublic IP: " + pip + "\nLocal IP: " + lip + "\nGateway: " + gw + "\n")
     return output
 end function
+
+globals.mtx.ipconfig = @globals.metexpreter.ipconfig
 
 globals.metexpreter.clearav = function(params)
     print("not yet :)")
@@ -1989,7 +2007,8 @@ globals.metexpreter.hashdump = function(params)
                     hashfound = null
 
                     for s in line
-                        if vars.indexOf(s) == null then content_new = content_new.replace(s, "-")
+                        to_replace = s.replace("\\", "\\")
+                        if vars.indexOf(s) == null then content_new = content_new.replace(s.escape(), "-")
                     end for
 
                     for new_s in content_new.split("-")
@@ -2000,7 +2019,7 @@ globals.metexpreter.hashdump = function(params)
                     end for
 
                     if hashfound and out.indexOf(line) == null then
-                        out.push([line.trim.replace("\:", " \| "), file.path].join(" | "))
+                        out.push([line.trim.replace("\:", " | "), file.path].join(" | "))
                     end if
 
                 end for
@@ -2016,12 +2035,14 @@ globals.metexpreter.hashdump = function(params)
 
     if out.len == 0 then return print_error("0 results founds", "Hashdump")
 
+    ln
     print(format_columns(out.join("\n")))
 
     return out
 end function
 
 globals.metexpreter.search = function(params)
+    if params.len < 1 then return print("Usage: search <keyword>")
     globals.metexpreter.ls(["/"], params[0])
 end function
 
@@ -2036,11 +2057,12 @@ globals.metexpreter.getsystem = function(params)
     print_info("Try to get /etc/passwd...")
     passwd = get_file(globals.session.shell, "/etc/passwd", true)
 
-    if typeof(passwd) != "file" then return print_error("No /etc/passwd file permissions")
+    if typeof(passwd) != "file" or not passwd.has_permission("r") then return print_error("No /etc/passwd file permissions")
 
     print_good("/etc/passwd readable!")
     print_info("Try to get root hash...")
-    root_passwd = passwd.get_content.split("\n")[0].split("\:")[1]
+    if not passwd or not passwd.get_content then return print_error("Unable to get root hash")
+    root_passwd = passwd.get_content.split("\n")[0].split(":")[1]
 
     if not root_passwd then return print_error("Unable to get root hash")
 
@@ -2162,7 +2184,7 @@ globals.metexpreter.switch = function(params)
     ln
     print_info("Launch MTX Framework binary")
     ln
-    globals.session.shell.launch(globals.session.pwd + "/" + program_path.split("\/")[-1])
+    globals.session.shell.launch(globals.session.pwd + "/" + program_path.split("/")[-1])
 end function
 
 globals.metexpreter.install = function(params)
