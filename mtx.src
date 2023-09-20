@@ -184,7 +184,7 @@ get_file = function(shell, path, silent = null)
         if file.path == "/" then
             directory_to_reach = path.split(file.path)[1]
         else
-            directory_to_reach = path.split(file.path)[1].split("/")[1]
+            directory_to_reach = path.split(file.path)[1]split("\/")[1]
         end if
 
         directory_to_reach = directory_to_reach.replace("//", "/")
@@ -220,7 +220,7 @@ write_file = function(session, path, content = "")
 
     path = path.replace("//", "/")
     working_folder = ""
-    folder_split = path.split("/")[1 : ]
+    folder_split = pathsplit("\/")[1 : ]
 
     for i in range(0, folder_split.len - 2)
         folder_path = "/" + folder_split[0 : i].join("/")
@@ -231,7 +231,7 @@ write_file = function(session, path, content = "")
     file_to = get_file(session.shell, path, true)
 
     if typeof(file_to) != "file" then
-        x = session.computer.touch(path.split("/")[0 : -1].join("/"), path.split("/")[-1])
+        x = session.computer.touch(pathsplit("\/")[0 : -1].join("/"), pathsplit("\/")[-1])
         file_to = session.computer.File(path)
 
         if x != true then return
@@ -444,7 +444,7 @@ write_exploit = function(exploit)
     exploit_content = exploit_content.replace("[port]", port)
     exploit_content = exploit_content.replace("[argument_drescription]", argument_description)
     // RICORDATI DI CAMBIARE LA DESCRIZIONE PER I TIPI NUMBER E LAN_SWITCH
-    exploit_content = exploit_content.replace("[description]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type. " + exploit.raw_info.replace("\n", ". ").replace("Buffer overflow..", "Requirements: ").replace("Require: ", "").replace("..", "."))
+    exploit_content = exploit_content.replace("[description]", "The vulnerability affect the " + exploit.address + " memory address and give the possibility to do a " + exploit.type.upper + " attack type. " + exploit.raw_info.replace("\n", ". ").replace("Buffer overflow..", "Requirements: ").replace("Require: ", "").replace("\..", "."))
     write_file(globals.localsession, "/usr/share/mtx/" + exploit.name + ".src", exploit_content)
 end function
 
@@ -456,7 +456,7 @@ compose_exploit_name = function(exploit)
 
     name.push(type)
     name.push(exploit.library.split("\.")[0].replace("lib", "").replace("kernel_", ""))
-    name.push(exploit.version.replace(".", "") + "_" + exploit.address + "_" + exploit.variable[0 : 6])
+    name.push(exploit.version.replace("\.", "") + "_" + exploit.address + "_" + exploit.variable[0 : 6])
     return name.join("/")
 end function
 
@@ -550,7 +550,7 @@ register_session = function(result, public_ip = "", quiet = false, subtype = "")
         pwd = user_info.path
         pwd = user_info.path
 
-        if globals.sessions.len == 0 then pwd = program_path.split("/")[0 : -1].join("/")
+        if globals.sessions.len == 0 then pwd = program_pathsplit("\/")[0 : -1].join("/")
 
         
         if subtype == "" then subtype = typeof(result)
@@ -730,8 +730,8 @@ globals.mtx.start = function()
         exploit_path = ""
 
         if globals.mtx.exploit then
-            firts_part = globals.mtx.exploit.id.split("/")[0]
-            second_part = globals.mtx.exploit.id.split("/")[1 : ].join("/")
+            firts_part = globals.mtx.exploit.idsplit("\/")[0]
+            second_part = globals.mtx.exploit.idsplit("\/")[1 : ].join("/")
             exploit_path = " " + firts_part + "(<color=#FF3A3A>" + second_part + ")</color>"
         end if
 
@@ -790,19 +790,19 @@ globals.mtx.reload = function(params = [], first_loading = false)
         current_content = current_content.replace("""", "")
         exploit = {}
         exploit.file = current_file
-        exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace(".src", "")
-        exploit.type = exploit.id.split("exploit/")[1].split("/")[0]
+        exploit.id = "exploit/" + current_file.path.split("exploits/")[1].replace("\.src", "")
+        exploit.type = exploit.id.split("exploit/")[1]split("\/")[0]
 
         for index in ["name", "rank", "disclosure_date", "privileged", "description"]
             if not exploit.hasIndex(index) then exploit[index] = "-----"
             exploit[index] = (current_content.split("MTXExploit." + index)[1].split("\n")[0].split("=")[1]).trim
         end for
 
-        if not globals.mtx.exploits_count.hasIndex(exploit.type) and exploit.id.split("/").len > 2 then
+        if not globals.mtx.exploits_count.hasIndex(exploit.type) and exploit.idsplit("\/").len > 2 then
             globals.mtx.exploits_count[exploit.type] = 0
         end if
 
-        if exploit.id.split("/").len > 2 then
+        if exploit.idsplit("\/").len > 2 then
             globals.mtx.exploits_count[exploit.type] = globals.mtx.exploits_count[exploit.type] + 1
         end if
 
@@ -819,7 +819,7 @@ globals.mtx.reload = function(params = [], first_loading = false)
             if current_content == "" then return
             current_content = current_content.replace("""", "")
             payload = {}
-            payload.id = "payload/" + payload_file.path.split("payloads/")[1].replace(".src", "")
+            payload.id = "payload/" + payload_file.path.split("payloads/")[1].replace("\.src", "")
             payload.file = payload_file
 
             for index in ["name", "description", "author"]
@@ -864,7 +864,7 @@ globals.mtx.set = function(params, is_g = false)
                 globals.mtx.payload = raw_payload
                 params[1] = globals.mtx.payload.id
                 globals.localsession.shell.build(globals.mtx.payload.file.path, "/home/guest")
-                globals.localsession.shell.launch("/home/guest/" + globals.mtx.payload.file.path.split("/")[-1].replace(".src", ""))
+                globals.localsession.shell.launch("/home/guest/" + globals.mtx.payload.file.pathsplit("\/")[-1].replace("\.src", ""))
                 get_custom_object.MTXExploit.options = get_custom_object.MTXExploit.options + get_custom_object.MTXPayload.options
 
                 for i in get_custom_object.MTXPayload.options.indexes
@@ -943,7 +943,7 @@ globals.mtx.use = function(params)
     get_custom_object.MTXPayload = {}
     get_custom_object.MTXPayload.options = {}
     globals.localsession.shell.build(globals.mtx.exploit.file.path, "/home/guest")
-    globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.path.split("/")[-1].replace(".src", ""))
+    globals.localsession.shell.launch("/home/guest/" + globals.mtx.exploit.file.pathsplit("\/")[-1].replace("\.src", ""))
 
     if ["shell", "file", "computer"].indexOf(globals.mtx.exploit.type) != null then
         get_custom_object.MTXExploit.options["PAYLOAD"] = {}
@@ -1063,7 +1063,7 @@ globals.mtx.show = function(params)
         ln
         print("Description")
         print("-----------")
-        print(exploit_found.description.replace(". ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n------------\n"))
+        print(exploit_found.description.replace("\. ", "\n").replace("  ", " ").replace("Requirements: ", "\nRequirements\n------------\n"))
     end if
 
 end function
@@ -1215,7 +1215,7 @@ globals.mtx.scan = function(params)
             exploit.requirements = vulnerability.requirements
             exploit.raw_info = vulnerability.raw
             exploit.name = "exploits/" + compose_exploit_name(exploit)
-            exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace(".src", "")
+            exploit.id = "exploit/" + exploit.name.split("exploits/")[1].replace("\.src", "")
             exploit.overflow = overlow
             ln
             print_good("Successfully created new exploit: " + exploit.id)
@@ -1401,8 +1401,8 @@ globals.mtx.nmap = function(params)
 
         lib = net.dump_lib
         print_good("Founded " + lib.lib_name + " " + lib.version, "Nmap - " + ip_address + ":" + port)
-        service = lib.lib_name.replace(".so", "").replace("lib", "").trim
-        version = lib.version.replace(".", "")
+        service = lib.lib_name.replace("\.so", "").replace("lib", "").trim
+        version = lib.version.replace("\.", "")
 
         print_info("Searching exploits for " + service + " service", "Nmap - " + ip_address + ":" + port)
 
@@ -1816,8 +1816,8 @@ globals.metexpreter.mkdir = function(params)
 
     if path[0] != "/" then path = session.pwd + "/" + path
 
-    folder_path = path.split("/")[0 : -1].join("/")
-    folder_name = path.split("/")[-1]
+    folder_path = pathsplit("\/")[0 : -1].join("/")
+    folder_name = pathsplit("\/")[-1]
 
     result = globals.session.computer.create_folder(folder_path, folder_name)
     if typeof(result) == "string" then return print_error(path + " -> " + result)
@@ -2162,7 +2162,7 @@ globals.metexpreter.switch = function(params)
     ln
     print_info("Launch MTX Framework binary")
     ln
-    globals.session.shell.launch(globals.session.pwd + "/" + program_path.split("/")[-1])
+    globals.session.shell.launch(globals.session.pwd + "/" + program_pathsplit("\/")[-1])
 end function
 
 globals.metexpreter.install = function(params)
