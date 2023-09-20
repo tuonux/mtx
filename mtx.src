@@ -93,7 +93,7 @@ get_exploit_info = function(scan_address_result)
 
         if line.indexOf("Unsafe") != null then
             i = i + 1
-            key = line.split("in ")[1].split(".")[0]
+            key = line.split("in ")[1].split("\.")[0]
 
             if key.indexOf(" ") then key = key.split(" ")[1]
 
@@ -455,7 +455,7 @@ compose_exploit_name = function(exploit)
     if exploit.type and exploit.type != "" then type = exploit.type
 
     name.push(type)
-    name.push(exploit.library.split(".")[0].replace("lib", "").replace("kernel_", ""))
+    name.push(exploit.library.split("\.")[0].replace("lib", "").replace("kernel_", ""))
     name.push(exploit.version.replace(".", "") + "_" + exploit.address + "_" + exploit.variable[0 : 6])
     return name.join("/")
 end function
@@ -1307,7 +1307,7 @@ globals.mtx.nmap = function(params)
 
     if ports == null then return print_error("IP address not found")
 
-    if typeof(ports) == "string" then  return print_error(ports.split(": ")[1])
+    if typeof(ports) == "string" then  return print_error(ports.split("\: ")[1])
 
     local_ip = router.local_ip
     kernel_version = router.kernel_version
@@ -1316,7 +1316,7 @@ globals.mtx.nmap = function(params)
         local_ip = is_router.local_ip
         kernel_version = is_router.kernel_version
     else
-        subnet = ip_address.split(".")[0 : -1].join(".")
+        subnet = ip_address.split("\.")[0 : -1].join(".")
         is_router = null
 
         for i in range(1, 255)
@@ -1430,7 +1430,7 @@ end function
 globals.mtx.connect = function(params)
     if params.len == 0 then return print("Usage: connect <ip>:<port>")
 
-    sp = params[0].split(":")
+    sp = params[0].split("\:")
 
     if sp.len != 2 then return print("Usage: connect <ip>:<port>")
 
@@ -2040,7 +2040,7 @@ globals.metexpreter.getsystem = function(params)
 
     print_good("/etc/passwd readable!")
     print_info("Try to get root hash...")
-    root_passwd = passwd.get_content.split("\n")[0].split(":")[1]
+    root_passwd = passwd.get_content.split("\n")[0].split("\:")[1]
 
     if not root_passwd then return print_error("Unable to get root hash")
 
