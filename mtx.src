@@ -223,7 +223,7 @@ write_file = function(session, path, content = "")
 
     for s in path
         if chars.indexOf(s) != null then continue
-        path = path.replace(s, "")
+        path = path.replace(s.escape, "")
     end for
 
     path = path.replace("//", "/")
