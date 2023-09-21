@@ -1,7 +1,7 @@
 // # MTX Framework
 // Author: tuonux <tuonux0@gmail.com>
 // Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game!
-VERSION = "1.2.1 for nightly version"
+VERSION = "1.2.2 for nightly version"
 globals.exec_params = params
 metaxploit_path = "/lib/metaxploit.so"
 metaxploit = include_lib(metaxploit_path)

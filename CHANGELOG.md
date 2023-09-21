@@ -1,5 +1,9 @@
 ## MTX Framework changelog
 
+### 1.2.2
+
+- Fix escape function regex for file name
+
 ### 1.2.1
 
 - Code refactoring to change fix split and replace methods for nightly version of the game
