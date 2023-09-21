@@ -344,7 +344,7 @@ Just copy and paste the **mtx.src** code in **CodeEditor.exe** and build it with
 
 ## MTX Framework Filesystem storage
 
-Every modules are stored under the folder /usr/share/mtx/exploits
+Every modules are stored under the folder \<mtx_binary_path\>/mtxframework/exploits
 
 There are different modules type that corrispond to own folders
 
@@ -360,7 +360,7 @@ Example:
 
 For example, shell exploits for ssh service are stored in this path
 
-    /usr/share/mtx/exploits/shell/ssh/<esploit_name>.src
+    \<mtx_binary_path\>/mtxframework/exploits/shell/ssh/<esploit_name>.src
 
 ## Write your own exploit compatible with framework!
 
@@ -436,7 +436,7 @@ end function
 
 It's a good pratice store your exploits under "custom" directory like example:
 
-    /usr/share/mtx/exploits/custom/<my_exploit_name>.src
+    \<mtx_binary_path\>/mtxframework/exploits/custom/<my_exploit_name>.src
 
 After created a custom exploit, you need to use "reload" command if you have mtx running.
 
@@ -480,7 +480,7 @@ end function
 
 You can store your payload under:
 
-    /usr/share/mtx/payloads/<my_payload_name>.src
+    \<mtx_binary_path\>/mtxframework/payloads/<my_payload_name>.src
 
 After created a custom payload, you need to use "reload" command if you have mtx running.
 

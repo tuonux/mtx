@@ -1,5 +1,13 @@
 ## MTX Framework changelog
 
+### 1.2.1
+
+- Code refactoring to change fix split and replace methods for nightly version of the game
+- Changed the default mtx path from /usr/share/mtx to \<mtx_binary_path\>/mtxframework to avoid permissions problems on guest hacked machines
+- Improve of download and upload commands to metexpreter
+- Improve of getsystem command for metexpreter
+- Improvement of the switch command
+
 ### 1.2.0
 
 - Release particulary focused on file system, permissions and reading, writing, and executing things
