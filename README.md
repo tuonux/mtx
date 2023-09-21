@@ -1,5 +1,9 @@
 # MTX Framework
 
+## DISCLAIMER
+
+This branch is designated only to the nightly version of Grey Hack and depending on it may have malfunctions or crash popups
+
 Just a funny porting of the real Metasploit Framework written in GreyScript language for Grey Hack game and as Metasploit... **_MTX Framework is Open Source!_**
 
 Author: tuonux \<tuonux0@gmail.com\>
